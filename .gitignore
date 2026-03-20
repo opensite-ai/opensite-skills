@@ -1,0 +1,13 @@
+.env
+*.zip
+.DS_Store
+
+# Ignore platform-specific skills
+deploy-fly-io*
+octane-embedding-pipeline*
+octane-llm-engine*
+octane-rust-axum*
+octane-soc2-hipaa*
+rails-api-patterns*
+sentry-monitoring*
+gpu-workers-python*
