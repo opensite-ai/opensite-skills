@@ -90,3 +90,24 @@ These skills are available in `.claude/skills/`. Load them with `/skill-name` or
 | Security audits, architecture reviews | Opus 4.6 | High-stakes, deep reasoning |
 | Standard coding (bug fixes, features) | Sonnet 4.6 | Near-parity performance |
 | Self-hosted inference (Phase 1+) | Llama 3.3 70B | SOC2/HIPAA compliant, $0.002-0.005/1K |
+
+## Cloud Skill Sync
+
+Skills in this repo are the source of truth. Claude Code and Codex read them via symlinks (changes are instant). Cloud platforms require a re-upload after edits:
+
+```bash
+./sync-perplexity.sh    # Perplexity Computer — perplexity.ai/account/org/skills
+./sync-claude.sh        # Claude Desktop     — claude.ai/customize/skills
+```
+
+Both scripts open a **visible Brave browser window** and automate the upload UI. Credentials live in `.env` (gitignored):
+
+```
+PERPLEXITY_SESSION_COOKIE=...   # from perplexity.ai cookies: __Secure-next-auth.session-token
+CLAUDE_SESSION_COOKIE=...       # from claude.ai cookies: sessionKey
+```
+
+**Important implementation notes (do not regress):**
+- Scripts use the real Brave binary (`/Applications/Brave Browser.app`) — Playwright's bundled headless Chromium is blocked by Cloudflare on both sites
+- File upload uses Playwright's `filechooser` event interception after clicking the dropzone — directly setting `input.files` via DOM does not trigger React's `onChange` and silently fails
+- Both scripts create a fresh browser context (not the user's profile) and inject only the session cookie

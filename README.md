@@ -9,8 +9,9 @@ These skills follow the [Agent Skills open standard](https://agentskills.io) and
 | Platform | Skill Location | Load method |
 | ---------- | --------------- | ------------- |
 | **Claude Code** | `~/.claude/skills/` (global) or `.claude/skills/` (project) | Automatic + `/skill-name` |
+| **Claude Desktop** | Cloud upload — `claude.ai/customize/skills` | Automatic trigger |
 | **Codex** | `~/.codex/skills/` (global) or `.agents/skills/` (repo) | Automatic + `$skill-name` |
-| **Perplexity Computer** | Cloud upload — Skills page → Upload a Skill | Automatic trigger |
+| **Perplexity Computer** | Cloud upload — `perplexity.ai/account/org/skills` | Automatic trigger |
 | **Cursor / Copilot** | `.cursor/skills/` or `.github/skills/` per-repo | Via `/` commands |
 
 > **One repo, zero copying.** Set this up once with the platform setup script and all tools read from the same directory via symlinks. Update a skill once — all tools see the change instantly.
@@ -19,7 +20,7 @@ These skills follow the [Agent Skills open standard](https://agentskills.io) and
 
 ## Quick Setup
 
-> For primary platforms: Claude Code, Codex, and Cursor. Dedicated script for Perplexity Computer in the `Manual Setup` section below.
+> For local platforms: Claude Code, Codex, and Cursor. Dedicated scripts for cloud platforms (Perplexity, Claude Desktop) below.
 
 ```bash
 # 1. Clone to a stable location
@@ -31,6 +32,91 @@ cd ~/opensite-skills
 ```
 
 The setup script creates symlinks from each platform's skills directory to this repo — no file copying.
+
+---
+
+## Cloud Platform Sync
+
+Both Perplexity Computer and Claude Desktop store skills in the cloud and require browser-based upload (neither has a public API). The sync scripts use **Playwright driving your real Brave browser** (headed, visible window) to bypass Cloudflare bot detection that blocks headless automation.
+
+### Prerequisites
+
+1. **Node.js 18+** — for Playwright
+2. **Brave Browser** — must be installed at `/Applications/Brave Browser.app`
+3. **Session cookies** — one per cloud platform (see below)
+
+### Getting session cookies
+
+Both scripts authenticate by injecting a session cookie into a fresh browser context. To get your cookie:
+
+1. Open the target site in Brave and log in
+2. Press `F12` → **Application** tab → **Cookies** → select the site domain
+3. Find and copy the session token value (see per-platform details below)
+4. Add to `.env` in this repo
+
+`.env` format (copy from `.env.example`):
+```bash
+PERPLEXITY_SESSION_COOKIE="<value>"
+CLAUDE_SESSION_COOKIE="<value>"
+```
+
+---
+
+### Perplexity Computer
+
+**Cookie to grab:** at `https://www.perplexity.ai` — find `__Secure-next-auth.session-token`
+
+**URL used by the script:** `https://www.perplexity.ai/account/org/skills` (the org settings page has a direct "Upload skill" button — no dropdown required)
+
+```bash
+./sync-perplexity.sh                   # sync all skills
+./sync-perplexity.sh --changed-only    # only git-modified skills since last commit
+./sync-perplexity.sh octane-rust-axum  # one specific skill by name
+```
+
+**What it does:**
+- Opens a Brave window, navigates to the org skills page
+- For each skill: checks if it already exists in the org list
+  - **Exists** → opens the skill's `⋮` menu → clicks the update option → re-uploads the zip
+  - **New** → clicks "Upload skill" → uploads the zip
+- Reports `uploaded` / `updated` / `FAILED` per skill
+- Brave window closes automatically when done
+
+**How update detection works:** Playwright intercepts the native file-chooser event that fires when the dropzone is clicked. This triggers React's `onChange` handler correctly — directly setting `input.files` via the DOM does not work with React's synthetic event system.
+
+**Why Brave (not headless Chromium):** Playwright's bundled test Chromium has a distinct fingerprint that Cloudflare detects and blocks. Using the real Brave binary with a visible window passes Cloudflare's bot checks.
+
+Or upload manually: go to `perplexity.ai/account/org/skills` → **Upload skill**, then drag in any `SKILL.md` or a `.zip` of the skill folder. Max 10 MB per upload.
+
+---
+
+### Claude Desktop
+
+**Cookie to grab:** at `https://claude.ai` — find `sessionKey`
+
+**URL used by the script:** `https://claude.ai/customize/skills`
+
+```bash
+./sync-claude.sh                   # sync all skills
+./sync-claude.sh --changed-only    # only git-modified skills
+./sync-claude.sh octane-rust-axum  # one specific skill
+```
+
+> The sync-claude.sh script uses the same Brave + file-chooser approach as sync-perplexity.sh. See that section for full technical details.
+
+Or upload manually: go to `claude.ai/customize/skills` → click the **+** icon → **Upload a skill**, then drag in a `SKILL.md` or `.zip`.
+
+---
+
+### Why not use my existing Brave login?
+
+The scripts launch Brave with a **fresh browser context** (no profile, no cookies) and inject just the session cookie. This is intentional:
+
+- Avoids touching or corrupting your actual Brave profile
+- Works even if Brave is already open
+- Session cookie gives full authenticated access without needing a full profile copy
+
+If Brave is not installed, the scripts fall back to Playwright's bundled Chromium — but note that Cloudflare may block this on some networks.
 
 ---
 
@@ -58,16 +144,6 @@ for skill in ~/opensite-skills/*/; do
 done
 ```
 
-### Perplexity Computer
-
-Perplexity uses cloud-hosted skills (no local filesystem). Run the upload script to sync:
-
-```bash
-./sync-perplexity.sh   # reads PERPLEXITY_API_KEY from env or .env file
-```
-
-Or upload manually: go to **Skills → Create Skill → Upload a Skill**, then drag in any `SKILL.md` or a `.zip` of the skill folder. Max 10 MB per upload.
-
 ### Repo-level (check in alongside code)
 
 ```bash
@@ -94,8 +170,9 @@ git add -A
 git commit -m "chore(skills): codex deepening $(date +%Y-%m-%d)"
 git push
 
-# Then re-upload changed skills to Perplexity
+# Then re-upload changed skills to cloud platforms
 ./sync-perplexity.sh --changed-only
+./sync-claude.sh --changed-only
 ```
 
 ---
@@ -174,18 +251,20 @@ Some skills use Claude Code extensions (`context: fork`, `disable-model-invocati
 
 ---
 
-## Updating Skills
+## Repo Structure
 
-```bash
+```
 opensite-skills/
 ├── <skill-name>/
 │   ├── SKILL.md          ← Edit this to update a skill
 │   └── *.md              ← Supporting reference docs
 ├── CLAUDE.md             ← Root context (Claude Code only)
 ├── README.md
-├── setup.sh              ← Symlink installer
-└── sync-perplexity.sh    ← Perplexity upload helper
+├── setup.sh              ← Symlink installer (Claude Code, Codex, Cursor)
+├── sync-perplexity.sh    ← Perplexity Computer cloud sync
+├── sync-claude.sh        ← Claude Desktop cloud sync
+└── .env                  ← Session cookies (gitignored)
 ```
 
 Any tool that reads via symlink picks up changes immediately (no reinstall needed).
-Perplexity requires a re-upload since it stores skills in the cloud.
+Cloud platforms (Perplexity, Claude Desktop) require a re-upload after skill changes.

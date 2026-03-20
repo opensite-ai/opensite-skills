@@ -118,9 +118,9 @@ if [ ! -f "$PLAYWRIGHT_HOME/node_modules/.bin/playwright" ]; then
   echo "  Installing Playwright (one-time, ~200MB)..."
   mkdir -p "$PLAYWRIGHT_HOME"
   cd "$PLAYWRIGHT_HOME"
-  npm init -y > /dev/null 2>&1
+  echo '{"name":"playwright-runner","version":"1.0.0","private":true}' > package.json
   npm install playwright > /dev/null 2>&1
-  node node_modules/.bin/playwright install chromium 2>&1 | grep -v "^$" || true
+  PLAYWRIGHT_BROWSERS_PATH="$PLAYWRIGHT_HOME/browsers" node node_modules/.bin/playwright install chromium 2>&1 | grep -v "^$" || true
   cd "$SKILLS_DIR"
   echo "  Playwright ready."
   echo ""
@@ -131,21 +131,37 @@ UPLOAD_SCRIPT="$PLAYWRIGHT_HOME/upload.mjs"
 cat > "$UPLOAD_SCRIPT" << 'JSEOF'
 import { chromium } from 'playwright';
 import { basename } from 'path';
+import { existsSync } from 'fs';
 
 const SESSION_COOKIE = process.env.PERPLEXITY_SESSION_COOKIE;
 const SKILL_ZIPS = process.env.SKILL_ZIPS.split('\n').filter(Boolean);
+const SKILLS_URL = 'https://www.perplexity.ai/account/org/skills';
 
 if (!SESSION_COOKIE) {
   console.error('Error: PERPLEXITY_SESSION_COOKIE not set');
   process.exit(1);
 }
 
-const browser = await chromium.launch({ headless: true });
+// Use the real Brave binary so Cloudflare sees a genuine browser fingerprint.
+// Playwright's bundled headless Chromium is trivially detected and blocked.
+const BRAVE = '/Applications/Brave Browser.app/Contents/MacOS/Brave Browser';
+const hasBrave = existsSync(BRAVE);
+
+const browser = await chromium.launch({
+  headless: false,           // visible window — eliminates headless detection signals
+  executablePath: hasBrave ? BRAVE : undefined,
+  args: [
+    '--no-first-run',
+    '--no-default-browser-check',
+    '--window-size=1280,900',
+    '--disable-blink-features=AutomationControlled',  // hides navigator.webdriver
+  ],
+});
 const context = await browser.newContext({
-  userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
+  // Match Brave's real user agent on macOS arm64
+  userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36',
 });
 
-// Inject session cookie
 await context.addCookies([{
   name: '__Secure-next-auth.session-token',
   value: SESSION_COOKIE,
@@ -158,16 +174,14 @@ await context.addCookies([{
 
 const page = await context.newPage();
 
-// Navigate to skills page and verify we're logged in
-console.log('  Navigating to skills page...');
-await page.goto('https://www.perplexity.ai/computer/skills', { waitUntil: 'domcontentloaded', timeout: 30000 });
-await page.waitForTimeout(2000);
+// Navigate to org skills page (direct "Upload skill" button — no dropdown)
+console.log('  Navigating to org skills page...');
+await page.goto(SKILLS_URL, { waitUntil: 'domcontentloaded', timeout: 30000 });
+await page.waitForTimeout(3000);
 
-// Check if we got redirected to login (session cookie invalid/expired)
 const currentUrl = page.url();
 if (currentUrl.includes('/login') || currentUrl.includes('sign-in')) {
-  console.error('');
-  console.error('  Error: Session cookie is invalid or expired.');
+  console.error('\n  Error: Session cookie is invalid or expired.');
   console.error('  Please grab a fresh cookie from your browser (F12 → Application → Cookies)');
   await browser.close();
   process.exit(1);
@@ -177,59 +191,147 @@ console.log(`  Authenticated. Current URL: ${currentUrl}`);
 console.log('');
 
 let uploaded = 0;
+let updated = 0;
 let failed = 0;
+
+// Wait for the page to fully settle after navigation (SPA needs networkidle)
+async function waitForPageReady() {
+  await page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
+  // Confirm the "Upload skill" button is present before proceeding
+  await page.locator('button').filter({ hasText: /upload skill/i }).first()
+    .waitFor({ state: 'visible', timeout: 15000 });
+}
+
+// Click the drop-zone and intercept the native file chooser.
+// This is the correct approach for React-controlled file inputs:
+// React's onChange fires from the file-chooser event, NOT from direct DOM mutations.
+async function uploadViaFileChooser(zipPath) {
+  const dropZone = page.locator('[role="button"]')
+    .filter({ hasText: /drag your file here|click to upload/i })
+    .first();
+
+  await dropZone.waitFor({ state: 'visible', timeout: 10000 });
+
+  // Intercept the file chooser before clicking so the OS dialog never opens
+  const [fileChooser] = await Promise.all([
+    page.waitForEvent('filechooser', { timeout: 8000 }),
+    dropZone.click(),
+  ]);
+  await fileChooser.setFiles(zipPath);
+
+  // Wait for the modal to close (drop-zone disappears = upload succeeded)
+  // or for an error message to appear. Allow up to 30s for network upload.
+  try {
+    await dropZone.waitFor({ state: 'hidden', timeout: 30000 });
+    return { ok: true };
+  } catch {
+    const errorText = await page.locator('[role="dialog"], [role="modal"], main')
+      .filter({ hasText: /error|invalid|failed/i })
+      .first()
+      .textContent({ timeout: 2000 })
+      .catch(() => null);
+    return { ok: false, reason: errorText ?? 'modal still open after 30s' };
+  }
+}
+
+// Check whether a skill already exists by searching the list.
+async function findExistingSkill(skillName) {
+  const searchInput = page.locator('input[placeholder*="Search"]').first();
+  const hasSearch = await searchInput.isVisible({ timeout: 3000 }).catch(() => false);
+
+  if (hasSearch) {
+    await searchInput.fill(skillName);
+    await page.waitForTimeout(1200);
+  }
+
+  // A skill row contains the slug as its primary label — use a broad text match
+  // after searching so the list is already filtered
+  const rows = page.locator('div, li, article').filter({ hasText: skillName });
+  const count = await rows.count();
+
+  if (hasSearch) {
+    await searchInput.clear();
+    await page.waitForTimeout(600);
+  }
+
+  return count > 0;
+}
+
+// Open the upload modal for an existing skill via its ⋮ menu.
+// Returns true when the update/upload menu item was found and clicked.
+async function openUpdateModal(skillName) {
+  const skillRow = page.locator('div, li, article')
+    .filter({ hasText: skillName })
+    .first();
+
+  // Radix dropdown trigger — the last button in the row
+  const menuTrigger = skillRow.locator('button[aria-haspopup="menu"], button').last();
+  await menuTrigger.waitFor({ state: 'visible', timeout: 8000 });
+  await menuTrigger.click();
+  await page.waitForTimeout(600);
+
+  const updateItem = page.locator('[role="menuitem"]')
+    .filter({ hasText: /update|upload|replace|edit/i })
+    .first();
+  const found = await updateItem.isVisible({ timeout: 4000 }).catch(() => false);
+
+  if (!found) {
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(400);
+    return false;
+  }
+
+  await updateItem.click();
+  await page.waitForTimeout(800);
+  return true;
+}
+
+// Open the upload modal for a brand-new skill.
+async function openCreateModal() {
+  const uploadBtn = page.locator('button').filter({ hasText: /upload skill/i }).first();
+  await uploadBtn.waitFor({ state: 'visible', timeout: 10000 });
+  await uploadBtn.click();
+  await page.waitForTimeout(800);
+}
 
 for (const zipPath of SKILL_ZIPS) {
   const skillName = basename(zipPath, '.zip');
-  process.stdout.write(`  Uploading ${skillName}... `);
+  process.stdout.write(`  Syncing ${skillName}... `);
 
   try {
-    // Re-navigate to skills page for each upload (avoids stale state)
+    // Navigate fresh for every skill so the list is fully loaded
     if (SKILL_ZIPS.indexOf(zipPath) > 0) {
-      await page.goto('https://www.perplexity.ai/computer/skills', { waitUntil: 'domcontentloaded', timeout: 30000 });
-      await page.waitForTimeout(1500);
+      await page.goto(SKILLS_URL, { waitUntil: 'domcontentloaded', timeout: 30000 });
+    }
+    await waitForPageReady();
+
+    const exists = await findExistingSkill(skillName);
+
+    if (exists) {
+      const opened = await openUpdateModal(skillName);
+      if (!opened) {
+        console.log('SKIPPED (no update option in menu — skill exists but cannot be updated)');
+        continue;
+      }
+    } else {
+      await openCreateModal();
     }
 
-    // Find and click "Create skill" button (try multiple selectors)
-    const createBtn = page.locator('button').filter({ hasText: /create skill/i }).first();
-    await createBtn.waitFor({ timeout: 10000 });
-    await createBtn.click();
-    await page.waitForTimeout(800);
+    const result = await uploadViaFileChooser(zipPath);
 
-    // Click "Upload a skill" option
-    const uploadOption = page.locator('*').filter({ hasText: /upload a skill/i }).last();
-    await uploadOption.waitFor({ timeout: 5000 });
-    await uploadOption.click();
-    await page.waitForTimeout(800);
-
-    // Handle file upload — wait for file chooser
-    const [fileChooser] = await Promise.all([
-      page.waitForEvent('filechooser', { timeout: 8000 }),
-      // Try clicking the visible upload area
-      page.locator('input[type="file"]').first().click({ force: true }).catch(() =>
-        page.locator('[class*="upload"], [class*="drop-zone"], [class*="dropzone"]').first().click()
-      ),
-    ]);
-    await fileChooser.setFiles(zipPath);
-    await page.waitForTimeout(3000);
-
-    // Look for success or error
-    const successIndicator = await page.locator('*').filter({ hasText: /success|uploaded|created/i }).first().isVisible().catch(() => false);
-    const errorIndicator = await page.locator('*').filter({ hasText: /error|invalid|failed/i }).first().isVisible().catch(() => false);
-
-    // Close modal
-    await page.keyboard.press('Escape');
+    // Dismiss any remaining modal
+    await page.keyboard.press('Escape').catch(() => {});
     await page.waitForTimeout(500);
 
-    if (errorIndicator && !successIndicator) {
-      console.log('FAILED (error shown in UI)');
-      failed++;
+    if (result.ok) {
+      if (exists) { console.log('updated'); updated++; }
+      else        { console.log('uploaded'); uploaded++; }
     } else {
-      console.log('OK');
-      uploaded++;
+      console.log(`FAILED: ${result.reason}`);
+      failed++;
     }
   } catch (err) {
-    const msg = err.message.split('\n')[0].substring(0, 80);
+    const msg = err.message.split('\n')[0].substring(0, 100);
     console.log(`FAILED: ${msg}`);
     await page.keyboard.press('Escape').catch(() => {});
     failed++;
@@ -238,11 +340,10 @@ for (const zipPath of SKILL_ZIPS) {
 
 await browser.close();
 
-// Clean up zips
 console.log('');
-console.log(`  Results: ${uploaded} uploaded, ${failed} failed`);
-if (uploaded > 0) {
-  console.log('  View at: https://www.perplexity.ai/computer/skills');
+console.log(`  Results: ${uploaded} new, ${updated} updated, ${failed} failed`);
+if (uploaded + updated > 0) {
+  console.log(`  View at: ${SKILLS_URL}`);
 }
 process.exit(failed > 0 ? 1 : 0);
 JSEOF
@@ -253,7 +354,7 @@ SKILL_ZIPS_LIST=$(printf '%s\n' "${SKILL_ZIPS[@]}")
 SKILL_ZIPS="$SKILL_ZIPS_LIST" \
 PERPLEXITY_SESSION_COOKIE="${PERPLEXITY_SESSION_COOKIE}" \
 PLAYWRIGHT_BROWSERS_PATH="$PLAYWRIGHT_HOME/browsers" \
-node --experimental-vm-modules "$UPLOAD_SCRIPT" 2>&1
+node "$UPLOAD_SCRIPT" 2>&1
 
 EXIT_CODE=$?
 

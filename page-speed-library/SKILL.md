@@ -5,7 +5,7 @@ description: page-speed-* library development patterns. Use when creating or mod
 
 # Page-Speed Library Development Skill
 
-You are working in the OpenSite `@page-speed/*` sub-library ecosystem — a set of focused, tree-shakable React component packages that compose into `@opensite/ui`.
+You are working in the OpenSite `@page-speed/*` sub-library ecosystem — a set of focused, tree-shakable React component packages that compose into `@opensite/ui` and work together to deliver OpenSite's groundbreaking Semantic UI Design System.
 
 ## Library Inventory
 
