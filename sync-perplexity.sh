@@ -4,14 +4,17 @@
 #
 # Perplexity has no public REST API for skill uploads — the upload UI is
 # protected by Cloudflare and requires a real browser session.
-# This script uses Playwright (headless Chromium) to upload via the UI.
+# This script uses Playwright (real Brave browser, headed) to upload via the UI.
+# Playwright's bundled headless Chromium is detected and blocked by Cloudflare;
+# using the real Brave binary with a visible window bypasses this.
 #
 # Requirements:
 #   - Node.js 18+
+#   - Brave Browser at /Applications/Brave Browser.app
 #   - PERPLEXITY_SESSION_COOKIE in .env (see below)
 #
 # Getting your session cookie:
-#   1. Log in to perplexity.ai in Chrome/Edge (via Google is fine)
+#   1. Log in to perplexity.ai in Brave (or any browser)
 #   2. Press F12 → Application tab → Cookies → https://www.perplexity.ai
 #   3. Find "__Secure-next-auth.session-token", copy its Value
 #   4. Add to .env:  PERPLEXITY_SESSION_COOKIE="<paste here>"

@@ -108,6 +108,10 @@ CLAUDE_SESSION_COOKIE=...       # from claude.ai cookies: sessionKey
 ```
 
 **Important implementation notes (do not regress):**
-- Scripts use the real Brave binary (`/Applications/Brave Browser.app`) — Playwright's bundled headless Chromium is blocked by Cloudflare on both sites
-- File upload uses Playwright's `filechooser` event interception after clicking the dropzone — directly setting `input.files` via DOM does not trigger React's `onChange` and silently fails
-- Both scripts create a fresh browser context (not the user's profile) and inject only the session cookie
+- Both scripts use the real Brave binary (`/Applications/Brave Browser.app`) in headed (visible window) mode — Playwright's bundled headless Chromium is trivially detected and blocked by Cloudflare on both sites
+- File upload uses Playwright's `filechooser` event interception after clicking the upload zone — directly setting `input.files` via the DOM does not trigger React's `onChange` and silently fails
+- Both scripts create a fresh browser context (not the user's existing Brave profile) and inject only the session cookie
+
+**Update strategies differ between platforms:**
+- **Perplexity** (`sync-perplexity.sh`): searches the skill list first; if found, opens the skill's `⋮` (kebab) menu and clicks the update option; if not found, clicks the top-level "Upload skill" button. Drop-zone element is a `div[role="button"]` with text "Drag your file here or click to upload".
+- **Claude** (`sync-claude.sh`): always runs the identical "new skill" flow for every skill (`+` button → "Upload a skill" dropdown item); if the skill already exists Claude automatically shows a "Replace [name] skill?" confirmation dialog — the script clicks "Upload and replace". No search or ⋮ menu needed. Drop-zone element is a `<button>` with text "Drag and drop or click to upload".

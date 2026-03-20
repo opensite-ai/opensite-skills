@@ -64,9 +64,10 @@ CLAUDE_SESSION_COOKIE="<value>"
 
 ### Perplexity Computer
 
-**Cookie to grab:** at `https://www.perplexity.ai` — find `__Secure-next-auth.session-token`
+**Cookie to grab:** Open Brave → `perplexity.ai` → log in → `F12` → **Application** → **Cookies** → `https://www.perplexity.ai` → find `__Secure-next-auth.session-token`, copy its Value.
 
-**URL used by the script:** `https://www.perplexity.ai/account/org/skills` (the org settings page has a direct "Upload skill" button — no dropdown required)
+**URL used by the script:** `https://www.perplexity.ai/account/org/skills`
+(the org settings page has a direct "Upload skill" button — no dropdown required)
 
 ```bash
 ./sync-perplexity.sh                   # sync all skills
@@ -74,37 +75,46 @@ CLAUDE_SESSION_COOKIE="<value>"
 ./sync-perplexity.sh octane-rust-axum  # one specific skill by name
 ```
 
-**What it does:**
-- Opens a Brave window, navigates to the org skills page
-- For each skill: checks if it already exists in the org list
-  - **Exists** → opens the skill's `⋮` menu → clicks the update option → re-uploads the zip
-  - **New** → clicks "Upload skill" → uploads the zip
-- Reports `uploaded` / `updated` / `FAILED` per skill
-- Brave window closes automatically when done
+**What it does per skill:**
+1. Navigates to the org skills page
+2. Searches the skill list for the skill name
+3. **Exists** → opens the skill's `⋮` menu → clicks the update option → re-uploads the zip
+4. **New** → clicks "Upload skill" → uploads the zip
+5. Confirms modal closed (success) or reports the error message
 
-**How update detection works:** Playwright intercepts the native file-chooser event that fires when the dropzone is clicked. This triggers React's `onChange` handler correctly — directly setting `input.files` via the DOM does not work with React's synthetic event system.
+**File upload mechanism:** Playwright intercepts the native `filechooser` event that fires when the dropzone is clicked. This triggers React's `onChange` correctly — directly setting `input.files` on the DOM does not work with React's synthetic event system and silently fails.
 
-**Why Brave (not headless Chromium):** Playwright's bundled test Chromium has a distinct fingerprint that Cloudflare detects and blocks. Using the real Brave binary with a visible window passes Cloudflare's bot checks.
+**Why Brave (not headless Chromium):** Playwright's bundled test Chromium has a distinct fingerprint Cloudflare detects and blocks after the first request. Using the real Brave binary (`/Applications/Brave Browser.app`) with a visible window passes Cloudflare's bot checks.
 
-Or upload manually: go to `perplexity.ai/account/org/skills` → **Upload skill**, then drag in any `SKILL.md` or a `.zip` of the skill folder. Max 10 MB per upload.
+Or upload manually: go to `perplexity.ai/account/org/skills` → **Upload skill**, drag in any `SKILL.md` or `.zip` of the skill folder. Max 10 MB per upload.
 
 ---
 
 ### Claude Desktop
 
-**Cookie to grab:** at `https://claude.ai` — find `sessionKey`
+**Cookie to grab:** Open Brave → `claude.ai` → log in → `F12` → **Application** → **Cookies** → `https://claude.ai` → find `sessionKey`, copy its Value.
 
 **URL used by the script:** `https://claude.ai/customize/skills`
 
 ```bash
 ./sync-claude.sh                   # sync all skills
-./sync-claude.sh --changed-only    # only git-modified skills
-./sync-claude.sh octane-rust-axum  # one specific skill
+./sync-claude.sh --changed-only    # only git-modified skills since last commit
+./sync-claude.sh octane-rust-axum  # one specific skill by name
 ```
 
-> The sync-claude.sh script uses the same Brave + file-chooser approach as sync-perplexity.sh. See that section for full technical details.
+**What it does per skill:**
+1. Navigates to `claude.ai/customize/skills`
+2. Clicks the `+` (Add skill) button — a Radix dropdown trigger (`aria-label="Add skill"`)
+3. Clicks **Upload a skill** in the dropdown (`[role="menuitem"]`)
+4. Intercepts the `filechooser` event on the dashed upload zone and sets the zip file
+5. **If the skill already exists**, Claude automatically shows a **"Replace [name] skill?"** confirmation dialog — the script clicks **Upload and replace** to proceed
+6. **If the skill is new**, the modal closes on its own after upload
 
-Or upload manually: go to `claude.ai/customize/skills` → click the **+** icon → **Upload a skill**, then drag in a `SKILL.md` or `.zip`.
+No manual duplicate detection or ⋮ menu navigation needed — Claude handles name collisions natively. The script runs the identical flow for every skill regardless of whether it exists.
+
+**Why Brave (same reason as Perplexity):** Cloudflare on `claude.ai` also detects and blocks Playwright's bundled headless Chromium.
+
+Or upload manually: go to `claude.ai/customize/skills` → click the **+** icon → **Upload a skill**, drag in a `SKILL.md` or `.zip`.
 
 ---
 
