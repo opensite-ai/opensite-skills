@@ -1,6 +1,8 @@
 .env
 *.zip
 .DS_Store
+.playwright/
+.skill-zips-tmp/
 
 # Ignore platform-specific skills
 deploy-fly-io*
