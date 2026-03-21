@@ -156,7 +156,7 @@ def validate_helper_scripts(skill_dir: Path, errors: list[str]) -> None:
     python_files = sorted(str(path) for path in scripts_dir.glob("*.py"))
     if python_files:
         result = subprocess.run(
-            ["python3", "-m", "py_compile", *python_files],
+            ["python3", "-B", "-m", "py_compile", *python_files],
             cwd=REPO_ROOT,
             capture_output=True,
             text=True,

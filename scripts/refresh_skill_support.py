@@ -24,6 +24,20 @@ PRIVATE_SKILLS = {
 }
 
 SKILL_META = {
+    "agent-file-engine": {
+        "display_name": "Agent File Engine",
+        "category": "ops",
+        "scope": "shared",
+        "compatibility": (
+            "Requires filesystem access to the target repository; shell access is "
+            "strongly preferred for inventorying manifests, docs, tests, and "
+            "existing AGENTS.md coverage."
+        ),
+        "deep_reasoning": True,
+        "explicit_args": True,
+        "allowed_tools": "Read Grep Glob Bash",
+        "custom_keys": {"context": "fork", "agent": "Explore"},
+    },
     "ai-research-workflow": {
         "display_name": "AI Research Workflow",
         "category": "ai",

@@ -223,6 +223,7 @@ git push
 
 | Skill | Description |
 | ------- | ------------- |
+| `agent-file-engine` | Root + nested `AGENTS.md` authoring and coverage planning |
 | `deploy-fly-io` | Fly.io + Tigris deployment (manual-invoke only) |
 | `sentry-monitoring` | Error tracking across all services |
 | `git-workflow` | Branch, commit, PR conventions (manual-invoke only) |
@@ -242,6 +243,7 @@ Some skills use Claude Code extensions (`context: fork`, `disable-model-invocati
 
 | Skill | Claude Code behavior | Other platforms |
 | ------- | --------------------- | ----------------- |
+| `agent-file-engine` | Runs in forked subagent for repo analysis | Inline execution |
 | `deploy-fly-io` | Requires explicit `/deploy-fly-io` (no auto-invoke) | Explicit-only in Codex via `agents/openai.yaml` |
 | `git-workflow` | Requires explicit `/git-workflow` | Explicit-only in Codex via `agents/openai.yaml` |
 | `code-review-security` | Runs in forked subagent | Inline execution |

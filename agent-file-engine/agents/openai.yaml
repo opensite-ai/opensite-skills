@@ -1,0 +1,7 @@
+interface:
+  display_name: "Agent File Engine"
+  short_description: "Help with Agent File Engine tasks"
+  default_prompt: "Use $agent-file-engine when creating, refreshing, or expanding AGENTS.md coverage for a codebase, including deciding whether nested AGENTS.md files are needed for subsystems with distinct rules, workflows, or AI-sensitive constraints."
+
+policy:
+  allow_implicit_invocation: true
