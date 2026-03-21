@@ -1,9 +1,25 @@
 ---
 name: opensite-ui-components
-description: OpenSite UI component library patterns. Use when creating, editing, or reviewing components in @opensite/ui (opensite-ai/opensite-ui), the Semantic UI Engine, page-speed-* libraries, or the ui-library showcase (opensite-ai/ui-library). Covers component registration patterns, Tailwind CSS v4, Radix UI, framer-motion, ShadCN conventions, and the block/skin architecture.
+description: >
+  OpenSite UI component library patterns. Use when creating, editing, or
+  reviewing components in @opensite/ui (opensite-ai/opensite-ui), the Semantic
+  UI Engine, page-speed-* libraries, or the ui-library showcase
+  (opensite-ai/ui-library). Covers component registration patterns, Tailwind CSS
+  v4, Radix UI, framer-motion, ShadCN conventions, and the block/skin
+  architecture.
+compatibility: >
+  Requires a React or TypeScript repo with Tailwind CSS v4 and the OpenSite UI
+  package graph.
+metadata:
+  opensite-category: frontend
+  opensite-scope: ui
+  opensite-visibility: public
 ---
-
 # OpenSite UI Components Skill
+
+## Skill Resources
+- Activation and cross-agent notes: [references/activation.md](references/activation.md)
+- Template: [templates/component-brief.md](templates/component-brief.md)
 
 You are working in the OpenSite Semantic UI Engine — the `@opensite/ui` library (`github.com/opensite-ai/opensite-ui`) and its showcase application (`github.com/opensite-ai/ui-library`). This is a tree-shakable, abstract-styled component library powering the Semantic Site Builder.
 

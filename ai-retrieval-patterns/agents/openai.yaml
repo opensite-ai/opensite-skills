@@ -1,0 +1,7 @@
+interface:
+  display_name: "AI Retrieval Patterns"
+  short_description: "Help with AI Retrieval Patterns tasks"
+  default_prompt: "Use $ai-retrieval-patterns when building semantic search, RAG pipelines, document Q&A, or any system where retrieval strategy and embedding model choice affect answer quality."
+
+policy:
+  allow_implicit_invocation: true

@@ -1,9 +1,31 @@
 ---
 name: ai-research-workflow
-description: Deep research and AI workflow orchestration patterns for Octane. Use when working on brand guide generation, market analysis, competitive analysis, content brief, or any multi-step AI research pipeline. Covers the WorkflowBuilder/WorkflowStep orchestration system, Anthropic dual-model routing (Opus for research, Sonnet for generation), and the ai_tasks persistence pattern.
+description: >
+  Deep research and AI workflow orchestration patterns for Octane. Use when
+  working on brand guide generation, market analysis, competitive analysis,
+  content brief, or any multi-step AI research pipeline. Covers the
+  WorkflowBuilder/WorkflowStep orchestration system, Anthropic dual-model
+  routing (Opus for research, Sonnet for generation), and the ai_tasks
+  persistence pattern.
+compatibility: >
+  Best in the Octane Rust repo with Anthropic workflow code and network access
+  for external model or API verification.
+metadata:
+  opensite-category: ai
+  opensite-scope: octane
+  opensite-visibility: public
 ---
-
 # AI Research Workflow Skill
+
+## Skill Resources
+- Activation and cross-agent notes: [references/activation.md](references/activation.md)
+- Use `ultrathink` or the deepest available reasoning mode before changing architecture, security, migration, or performance-critical paths.
+- Example: [examples/workflow-brief.example.md](examples/workflow-brief.example.md)
+- Helper: `scripts/validate_workflow_brief.py`
+- Template: [templates/workflow-brief.md](templates/workflow-brief.md)
+
+## Task Focus for $ARGUMENTS
+When this skill is invoked explicitly, treat `$ARGUMENTS` as the primary scope to optimize around: a repo path, component name, incident id, rollout target, or other concrete task boundary.
 
 You are building or modifying multi-step AI research workflows in Octane (`github.com/Toastability/octane`). These workflows power the core AI services: brand guide, market analysis, competitive analysis, content brief, and SEO analysis.
 

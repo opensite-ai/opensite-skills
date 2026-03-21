@@ -1,0 +1,7 @@
+interface:
+  display_name: "AI Research Workflow"
+  short_description: "Help with AI Research Workflow tasks"
+  default_prompt: "Use $ai-research-workflow when working on brand guide generation, market analysis, competitive analysis, content brief, or any multi-step AI research pipeline. Covers the WorkflowBuilder/WorkflowStep orchestration system, Anthropic dual-model routing (Opus for research, Sonnet for generation), and the ai_tasks persistence pattern."
+
+policy:
+  allow_implicit_invocation: true

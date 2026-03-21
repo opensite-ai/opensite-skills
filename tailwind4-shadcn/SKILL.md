@@ -1,9 +1,24 @@
 ---
 name: tailwind4-shadcn
-description: Tailwind CSS v4 and ShadCN UI patterns for OpenSite. Use when working with Tailwind CSS v4 configuration, CSS variables, ShadCN component customization, theming, the style dashboard (inspired by tweakcn), or migrating components from Tailwind v3 to v4. Also applies to the v0-clone / Semantic UI Builder dashboard.
+description: >
+  Tailwind CSS v4 and ShadCN UI patterns for OpenSite. Use when working with
+  Tailwind CSS v4 configuration, CSS variables, ShadCN component customization,
+  theming, the style dashboard (inspired by tweakcn), or migrating components
+  from Tailwind v3 to v4. Also applies to the v0-clone / Semantic UI Builder
+  dashboard.
+compatibility: >
+  Requires Tailwind CSS v4, Node.js, and a React or Next.js codebase using the
+  ShadCN stack.
+metadata:
+  opensite-category: frontend
+  opensite-scope: ui
+  opensite-visibility: public
 ---
-
 # Tailwind CSS v4 + ShadCN Skill
+
+## Skill Resources
+- Activation and cross-agent notes: [references/activation.md](references/activation.md)
+- Template: [templates/theme-change-brief.md](templates/theme-change-brief.md)
 
 You are working in an OpenSite application that uses Tailwind CSS v4 with ShadCN UI. The `opensite-ai/ui-library` showcase, `Toastability/app` (dashtrack-cms), and all UI-related repos use this stack.
 

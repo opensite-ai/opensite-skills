@@ -1,15 +1,28 @@
 ---
 name: postgres-performance-engineering
 description: >
-  PostgreSQL performance engineering beyond basic indexing: query plan instability,
-  statistics staleness, EXPLAIN ANALYZE interpretation, GIN index pending list
-  management, extended statistics for correlated columns, PgBouncer connection pooling
-  modes, and autovacuum tuning. Use when investigating slow queries, debugging
-  inconsistent query performance, or tuning PostgreSQL for high-write production
-  workloads.
+  PostgreSQL performance engineering beyond basic indexing: query plan
+  instability, statistics staleness, EXPLAIN ANALYZE interpretation, GIN index
+  pending list management, extended statistics for correlated columns, PgBouncer
+  connection pooling modes, and autovacuum tuning. Use when investigating slow
+  queries, debugging inconsistent query performance, or tuning PostgreSQL for
+  high-write production workloads.
+compatibility: >
+  Requires PostgreSQL access or captured EXPLAIN and pg_stat output; shell
+  access helps with psql-based inspection.
+metadata:
+  opensite-category: data
+  opensite-scope: shared
+  opensite-visibility: public
+context: fork
+agent: Explore
 ---
-
 # PostgreSQL Performance Engineering
+
+## Skill Resources
+- Activation and cross-agent notes: [references/activation.md](references/activation.md)
+- Use `ultrathink` or the deepest available reasoning mode before changing architecture, security, migration, or performance-critical paths.
+- Template: [templates/explain-review.md](templates/explain-review.md)
 
 Index creation is the beginning of PostgreSQL performance work, not the end. Production performance problems are usually about the query planner making wrong decisions — and the planner's decisions are only as good as its statistics.
 

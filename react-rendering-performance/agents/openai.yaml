@@ -1,0 +1,7 @@
+interface:
+  display_name: "React Rendering Performance"
+  short_description: "Help with React Rendering Performance tasks"
+  default_prompt: "Use $react-rendering-performance when debugging slow renders, optimizing user-perceived performance, or implementing smooth navigation transitions in React 19+ applications."
+
+policy:
+  allow_implicit_invocation: true

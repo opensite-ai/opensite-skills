@@ -1,0 +1,7 @@
+interface:
+  display_name: "PostgreSQL Performance Engineering"
+  short_description: "Help with PostgreSQL Performance Engineering tasks"
+  default_prompt: "Use $postgres-performance-engineering when investigating slow queries, debugging inconsistent query performance, or tuning PostgreSQL for high-write production workloads."
+
+policy:
+  allow_implicit_invocation: true

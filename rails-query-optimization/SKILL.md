@@ -2,13 +2,23 @@
 name: rails-query-optimization
 description: >
   Advanced Rails query optimization: diagnosing N+1 beyond simple includes, the
-  cartesian product trap with multiple has_many eager loads, CTEs and lateral joins
-  via Arel and raw SQL, reading EXPLAIN ANALYZE output, and counter cache patterns.
-  Use when investigating slow Rails endpoints, optimizing ActiveRecord queries, or
-  designing queries for high-traffic production endpoints.
+  cartesian product trap with multiple has_many eager loads, CTEs and lateral
+  joins via Arel and raw SQL, reading EXPLAIN ANALYZE output, and counter cache
+  patterns. Use when investigating slow Rails endpoints, optimizing ActiveRecord
+  queries, or designing queries for high-traffic production endpoints.
+compatibility: >
+  Requires Rails plus PostgreSQL access or captured EXPLAIN output from the
+  target environment.
+metadata:
+  opensite-category: data
+  opensite-scope: rails
+  opensite-visibility: public
 ---
-
 # Rails Query Optimization
+
+## Skill Resources
+- Activation and cross-agent notes: [references/activation.md](references/activation.md)
+- Use `ultrathink` or the deepest available reasoning mode before changing architecture, security, migration, or performance-critical paths.
 
 `includes` solves the obvious N+1. The queries that bring down production are the ones that pass review because they look fine on a small dataset. This skill covers what happens after `includes`.
 

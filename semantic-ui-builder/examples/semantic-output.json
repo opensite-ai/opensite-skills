@@ -1,0 +1,12 @@
+{
+  "blockId": "hero-centered",
+  "props": {
+    "headline": "Neighborhood flavor with modern polish",
+    "subheadline": "A semantic hero block selected for a premium restaurant landing page.",
+    "cta": {
+      "label": "Book a tasting",
+      "href": "/reserve"
+    }
+  },
+  "reasoning": "Selected a hero block because the request emphasized a bold first impression and a single primary CTA."
+}

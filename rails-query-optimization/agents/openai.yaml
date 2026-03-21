@@ -1,0 +1,7 @@
+interface:
+  display_name: "Rails Query Optimization"
+  short_description: "Help with Rails Query Optimization tasks"
+  default_prompt: "Use $rails-query-optimization when investigating slow Rails endpoints, optimizing ActiveRecord queries, or designing queries for high-traffic production endpoints."
+
+policy:
+  allow_implicit_invocation: true

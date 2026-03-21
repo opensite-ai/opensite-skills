@@ -1,0 +1,7 @@
+interface:
+  display_name: "Git Workflow"
+  short_description: "Help with Git Workflow tasks"
+  default_prompt: "Use $git-workflow when creating branches, writing commit messages, opening pull requests, managing monorepo packages, or coordinating cross-repo changes. Covers GitHub Actions CI patterns for Rust, Rails, and Next.js."
+
+policy:
+  allow_implicit_invocation: false

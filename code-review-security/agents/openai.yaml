@@ -1,0 +1,7 @@
+interface:
+  display_name: "Code Review Security"
+  short_description: "Help with Code Review Security tasks"
+  default_prompt: "Use $code-review-security when reviewing PRs for security issues, auditing new API endpoints, checking for HIPAA/SOC2 compliance violations, reviewing Rust unsafe code, or scanning for injection vulnerabilities, data leakage, or auth bypasses. Auto-activates when reviewing code changes involving auth, LLM calls, user data, or external API integrations."
+
+policy:
+  allow_implicit_invocation: true

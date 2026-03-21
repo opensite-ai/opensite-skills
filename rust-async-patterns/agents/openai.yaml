@@ -1,0 +1,7 @@
+interface:
+  display_name: "Rust Async Patterns"
+  short_description: "Help with Rust Async Patterns tasks"
+  default_prompt: "Use $rust-async-patterns when debugging async compilation errors, structuring long-lived tasks, or designing services that mix async and CPU-bound work."
+
+policy:
+  allow_implicit_invocation: true

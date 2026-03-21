@@ -1,0 +1,7 @@
+interface:
+  display_name: "Tailwind 4 + ShadCN"
+  short_description: "Help with Tailwind 4 + ShadCN tasks"
+  default_prompt: "Use $tailwind4-shadcn when working with Tailwind CSS v4 configuration, CSS variables, ShadCN component customization, theming, the style dashboard (inspired by tweakcn), or migrating components from Tailwind v3 to v4. Also applies to the v0-clone / Semantic UI Builder dashboard."
+
+policy:
+  allow_implicit_invocation: true

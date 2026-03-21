@@ -1,15 +1,25 @@
 ---
 name: client-side-routing-patterns
 description: >
-  Client-side routing patterns using the History API — managing URL state without
-  full page reloads, building provider-optional routing hooks, SSR-safe browser API
-  access, scroll behavior, and parameter parsing. Covers both the architectural
-  patterns (custom routechange events, popstate listeners) and practical hook design
-  for zero-dependency routing libraries. Use when building or extending routing
-  systems, debugging navigation bugs, or working with @page-speed/router patterns.
+  Client-side routing patterns using the History API — managing URL state
+  without full page reloads, building provider-optional routing hooks, SSR-safe
+  browser API access, scroll behavior, and parameter parsing. Covers both the
+  architectural patterns (custom routechange events, popstate listeners) and
+  practical hook design for zero-dependency routing libraries. Use when building
+  or extending routing systems, debugging navigation bugs, or working with
+  @page-speed/router patterns.
+compatibility: >
+  Requires a JavaScript or TypeScript frontend repo; browser access helps when
+  validating navigation behavior.
+metadata:
+  opensite-category: frontend
+  opensite-scope: shared
+  opensite-visibility: public
 ---
-
 # Client-Side Routing Patterns
+
+## Skill Resources
+- Activation and cross-agent notes: [references/activation.md](references/activation.md)
 
 Modern client-side routing is built on two browser primitives: `history.pushState` / `history.replaceState` and the `popstate` event. Understanding these directly makes every router less magical and easier to debug.
 

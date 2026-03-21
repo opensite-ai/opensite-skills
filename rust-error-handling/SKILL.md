@@ -1,14 +1,24 @@
 ---
 name: rust-error-handling
 description: >
-  Idiomatic Rust error handling design for libraries and applications: thiserror vs
-  anyhow boundary decisions, error hierarchy design, context chain propagation, HTTP
-  handler error mapping, and the common patterns that prevent error type proliferation.
-  Use when designing error types for a new module, deciding between thiserror and
-  anyhow, or debugging opaque error messages in production.
+  Idiomatic Rust error handling design for libraries and applications: thiserror
+  vs anyhow boundary decisions, error hierarchy design, context chain
+  propagation, HTTP handler error mapping, and the common patterns that prevent
+  error type proliferation. Use when designing error types for a new module,
+  deciding between thiserror and anyhow, or debugging opaque error messages in
+  production.
+compatibility: >
+  Requires a Rust codebase and cargo; error-chain validation benefits from local
+  test coverage.
+metadata:
+  opensite-category: backend
+  opensite-scope: shared
+  opensite-visibility: public
 ---
-
 # Rust Error Handling
+
+## Skill Resources
+- Activation and cross-agent notes: [references/activation.md](references/activation.md)
 
 Rust's error handling requires deliberate design decisions that compound across a codebase. The wrong choice at a module boundary forces changes across every caller. This skill covers the architecture decisions, not just the syntax.
 

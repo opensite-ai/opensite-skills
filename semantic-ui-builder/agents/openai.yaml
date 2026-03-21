@@ -1,0 +1,7 @@
+interface:
+  display_name: "Semantic UI Builder"
+  short_description: "Help with Semantic UI Builder tasks"
+  default_prompt: "Use $semantic-ui-builder when working on the AI-powered site builder (handlers/semantic_builder.rs, handlers/semantic_ui_agent.rs in Octane), the component registry service, the Toastability/app CMS dashboard's site builder views, or any task related to AI-driven UI generation, block selection, skin application, or the v0-clone-inspired builder interface."
+
+policy:
+  allow_implicit_invocation: true

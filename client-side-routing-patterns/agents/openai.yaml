@@ -1,0 +1,7 @@
+interface:
+  display_name: "Client-Side Routing Patterns"
+  short_description: "Help with Client-Side Routing Patterns tasks"
+  default_prompt: "Use $client-side-routing-patterns when building or extending routing systems, debugging navigation bugs, or working with @page-speed/router patterns."
+
+policy:
+  allow_implicit_invocation: true

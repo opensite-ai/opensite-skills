@@ -1,0 +1,7 @@
+interface:
+  display_name: "Rails Zero-Downtime Migrations"
+  short_description: "Help with Rails Zero-Downtime Migrations tasks"
+  default_prompt: "Use $rails-zero-downtime-migrations when adding columns, indexes, constraints, or renaming/removing any database object on a live production database."
+
+policy:
+  allow_implicit_invocation: true

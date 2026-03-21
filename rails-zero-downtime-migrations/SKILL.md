@@ -1,14 +1,29 @@
 ---
 name: rails-zero-downtime-migrations
 description: >
-  Zero-downtime database migration patterns for Rails 6.1+ on PostgreSQL with Heroku
-  deployments. Covers the hot-compatibility principle, concurrent index creation,
-  multi-step column operations, constraint validation strategies, and Heroku-specific
-  release phase coordination. Use when adding columns, indexes, constraints, or
-  renaming/removing any database object on a live production database.
+  Zero-downtime database migration patterns for Rails 6.1+ on PostgreSQL with
+  Heroku deployments. Covers the hot-compatibility principle, concurrent index
+  creation, multi-step column operations, constraint validation strategies, and
+  Heroku-specific release phase coordination. Use when adding columns, indexes,
+  constraints, or renaming/removing any database object on a live production
+  database.
+compatibility: >
+  Requires Rails and PostgreSQL access plus deployment awareness;
+  production-safe checks assume release-phase coordination.
+metadata:
+  opensite-category: data
+  opensite-scope: rails
+  opensite-visibility: public
 ---
-
 # Rails Zero-Downtime Migrations
+
+## Skill Resources
+- Activation and cross-agent notes: [references/activation.md](references/activation.md)
+- Use `ultrathink` or the deepest available reasoning mode before changing architecture, security, migration, or performance-critical paths.
+- Template: [templates/migration-rollout.md](templates/migration-rollout.md)
+
+## Task Focus for $ARGUMENTS
+When this skill is invoked explicitly, treat `$ARGUMENTS` as the primary scope to optimize around: a repo path, component name, incident id, rollout target, or other concrete task boundary.
 
 Every schema change on a production database is a potential outage. PostgreSQL's lock acquisition can queue requests, overflow connection pools, and bring down your application — even for operations that complete in milliseconds. This skill covers the patterns that prevent that.
 

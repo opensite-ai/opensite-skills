@@ -1,16 +1,28 @@
 ---
 name: ai-retrieval-patterns
 description: >
-  Retrieval architecture for AI applications — choosing and combining vector RAG,
-  PageIndex (vectorless PDF tree-search), and precision embedding models. Covers the
-  decision framework for matching retrieval strategy to document type and query
-  characteristics, Milvus collection design, hybrid two-stage pipelines, the
-  EmbeddingProvider abstraction, and the routing layer that ties it all together.
-  Use when building semantic search, RAG pipelines, document Q&A, or any system
-  where retrieval strategy and embedding model choice affect answer quality.
+  Retrieval architecture for AI applications — choosing and combining vector
+  RAG, PageIndex (vectorless PDF tree-search), and precision embedding models.
+  Covers the decision framework for matching retrieval strategy to document type
+  and query characteristics, Milvus collection design, hybrid two-stage
+  pipelines, the EmbeddingProvider abstraction, and the routing layer that ties
+  it all together. Use when building semantic search, RAG pipelines, document
+  Q&A, or any system where retrieval strategy and embedding model choice affect
+  answer quality.
+compatibility: >
+  Best with access to retrieval code, Milvus schemas, and benchmark notes;
+  pgvector or Milvus access helps for live tuning validation.
+metadata:
+  opensite-category: ai
+  opensite-scope: shared
+  opensite-visibility: public
 ---
-
 # AI Retrieval Patterns
+
+## Skill Resources
+- Activation and cross-agent notes: [references/activation.md](references/activation.md)
+- Use `ultrathink` or the deepest available reasoning mode before changing architecture, security, migration, or performance-critical paths.
+- Template: [templates/retrieval-decision-record.md](templates/retrieval-decision-record.md)
 
 Retrieval is not a solved problem. Picking the wrong strategy wastes compute, degrades answer quality, and creates maintenance debt. Question every default. This skill establishes a decision framework for choosing and combining retrieval strategies.
 

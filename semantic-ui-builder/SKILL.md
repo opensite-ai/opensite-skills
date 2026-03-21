@@ -1,9 +1,30 @@
 ---
 name: semantic-ui-builder
-description: OpenSite Semantic UI Builder patterns. Use when working on the AI-powered site builder (handlers/semantic_builder.rs, handlers/semantic_ui_agent.rs in Octane), the component registry service, the Toastability/app CMS dashboard's site builder views, or any task related to AI-driven UI generation, block selection, skin application, or the v0-clone-inspired builder interface.
+description: >
+  OpenSite Semantic UI Builder patterns. Use when working on the AI-powered site
+  builder (handlers/semantic_builder.rs, handlers/semantic_ui_agent.rs in
+  Octane), the component registry service, the Toastability/app CMS dashboard's
+  site builder views, or any task related to AI-driven UI generation, block
+  selection, skin application, or the v0-clone-inspired builder interface.
+compatibility: >
+  Best with access to Octane, Toastability/app, and @opensite/ui repositories
+  plus structured-output JSON examples.
+metadata:
+  opensite-category: ai
+  opensite-scope: cross-stack
+  opensite-visibility: public
 ---
-
 # Semantic UI Builder Skill
+
+## Skill Resources
+- Activation and cross-agent notes: [references/activation.md](references/activation.md)
+- Use `ultrathink` or the deepest available reasoning mode before changing architecture, security, migration, or performance-critical paths.
+- Example: [examples/semantic-output.json](examples/semantic-output.json)
+- Helper: `scripts/validate_builder_payload.py`
+- Template: [templates/builder-brief.md](templates/builder-brief.md)
+
+## Task Focus for $ARGUMENTS
+When this skill is invoked explicitly, treat `$ARGUMENTS` as the primary scope to optimize around: a repo path, component name, incident id, rollout target, or other concrete task boundary.
 
 You are working on the OpenSite Semantic UI Builder — an AI-powered site building engine. The system spans multiple repos: the Octane Rust API handles AI logic and component registry lookups; the Toastability/app CMS frontend renders the builder UI.
 

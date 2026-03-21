@@ -1,0 +1,7 @@
+interface:
+  display_name: "Automation Builder"
+  short_description: "Help with Automation Builder tasks"
+  default_prompt: "Use $automation-builder when scripting any headless or headed browser interaction, file upload pipeline, or batch media processing task."
+
+policy:
+  allow_implicit_invocation: true

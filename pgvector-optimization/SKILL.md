@@ -3,13 +3,24 @@ name: pgvector-optimization
 description: >
   pgvector performance optimization: HNSW vs IVFFlat index selection and tuning,
   ef_search / m / ef_construction parameters, iterative scanning for filtered
-  queries, scalar and binary quantization for memory reduction, and dimensionality
-  compression. Embedding-model-agnostic — applies to any float32 vector workload.
-  Use when vector search queries are slow, recall is poor, or index memory footprint
-  is too large.
+  queries, scalar and binary quantization for memory reduction, and
+  dimensionality compression. Embedding-model-agnostic — applies to any float32
+  vector workload. Use when vector search queries are slow, recall is poor, or
+  index memory footprint is too large.
+compatibility: >
+  Requires PostgreSQL with pgvector or captured EXPLAIN output; SQL access
+  improves tuning validation.
+metadata:
+  opensite-category: data
+  opensite-scope: shared
+  opensite-visibility: public
 ---
-
 # pgvector Optimization
+
+## Skill Resources
+- Activation and cross-agent notes: [references/activation.md](references/activation.md)
+- Use `ultrathink` or the deepest available reasoning mode before changing architecture, security, migration, or performance-critical paths.
+- Template: [templates/index-tuning-record.md](templates/index-tuning-record.md)
 
 pgvector with default settings gives you correct results but not optimal performance. The gap between default and tuned can be 10–100x in query speed and 4–8x in memory usage. This skill covers what to tune and when.
 

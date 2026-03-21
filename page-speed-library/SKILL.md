@@ -1,9 +1,24 @@
 ---
 name: page-speed-library
-description: page-speed-* library development patterns. Use when creating or modifying @page-speed/* packages (blocks, router, forms, img, video, skins, maps, icon, lightbox, pdf-viewer, venn-diagram, hooks, social-share, humanizer) or the opensite-hooks and pressable libraries. Covers tsup bundling, peer dependency management, and the sub-library architecture.
+description: >
+  page-speed-* library development patterns. Use when creating or modifying
+  @page-speed/* packages (blocks, router, forms, img, video, skins, maps, icon,
+  lightbox, pdf-viewer, venn-diagram, hooks, social-share, humanizer) or the
+  opensite-hooks and pressable libraries. Covers tsup bundling, peer dependency
+  management, and the sub-library architecture.
+compatibility: >
+  Requires a React or TypeScript monorepo with tsup and the page-speed package
+  graph.
+metadata:
+  opensite-category: frontend
+  opensite-scope: ui
+  opensite-visibility: public
 ---
-
 # Page-Speed Library Development Skill
+
+## Skill Resources
+- Activation and cross-agent notes: [references/activation.md](references/activation.md)
+- Template: [templates/package-change-brief.md](templates/package-change-brief.md)
 
 You are working in the OpenSite `@page-speed/*` sub-library ecosystem — a set of focused, tree-shakable React component packages that compose into `@opensite/ui` and work together to deliver OpenSite's groundbreaking Semantic UI Design System.
 

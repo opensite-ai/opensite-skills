@@ -1,13 +1,24 @@
 ---
 name: rust-async-patterns
 description: >
-  Senior-level async Rust patterns: Future Send bound failures, Rust 2024 lifetime
-  capture rules, task cancellation with CancellationToken, blocking/async boundary
-  design, and timeout composition. Use when debugging async compilation errors,
-  structuring long-lived tasks, or designing services that mix async and CPU-bound work.
+  Senior-level async Rust patterns: Future Send bound failures, Rust 2024
+  lifetime capture rules, task cancellation with CancellationToken,
+  blocking/async boundary design, and timeout composition. Use when debugging
+  async compilation errors, structuring long-lived tasks, or designing services
+  that mix async and CPU-bound work.
+compatibility: >
+  Requires a Rust async codebase and cargo; reproduction of compiler errors
+  helps for targeted fixes.
+metadata:
+  opensite-category: backend
+  opensite-scope: shared
+  opensite-visibility: public
 ---
-
 # Rust Async Patterns
+
+## Skill Resources
+- Activation and cross-agent notes: [references/activation.md](references/activation.md)
+- Use `ultrathink` or the deepest available reasoning mode before changing architecture, security, migration, or performance-critical paths.
 
 Async Rust is not simply "add `.await`." The ownership model, `Send` bounds, and lifetime capture rules surface unique errors that are easy to misdiagnose. This skill covers the non-obvious patterns that senior Rust engineers reach for daily.
 

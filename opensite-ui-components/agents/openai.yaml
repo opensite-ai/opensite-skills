@@ -1,0 +1,7 @@
+interface:
+  display_name: "OpenSite UI Components"
+  short_description: "Help with OpenSite UI Components tasks"
+  default_prompt: "Use $opensite-ui-components when creating, editing, or reviewing components in @opensite/ui (opensite-ai/opensite-ui), the Semantic UI Engine, page-speed-* libraries, or the ui-library showcase (opensite-ai/ui-library). Covers component registration patterns, Tailwind CSS v4, Radix UI, framer-motion, ShadCN conventions, and the block/skin architecture."
+
+policy:
+  allow_implicit_invocation: true

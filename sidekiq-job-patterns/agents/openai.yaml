@@ -1,0 +1,7 @@
+interface:
+  display_name: "Sidekiq Job Patterns"
+  short_description: "Help with Sidekiq Job Patterns tasks"
+  default_prompt: "Use $sidekiq-job-patterns when the request matches this skill."
+
+policy:
+  allow_implicit_invocation: true

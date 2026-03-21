@@ -1,0 +1,7 @@
+interface:
+  display_name: "pgvector Optimization"
+  short_description: "Help with pgvector Optimization tasks"
+  default_prompt: "Use $pgvector-optimization when vector search queries are slow, recall is poor, or index memory footprint is too large."
+
+policy:
+  allow_implicit_invocation: true

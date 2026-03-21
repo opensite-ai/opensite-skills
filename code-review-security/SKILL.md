@@ -1,12 +1,33 @@
 ---
 name: code-review-security
-description: Security-focused code review for OpenSite/Toastability platform. Use when reviewing PRs for security issues, auditing new API endpoints, checking for HIPAA/SOC2 compliance violations, reviewing Rust unsafe code, or scanning for injection vulnerabilities, data leakage, or auth bypasses. Auto-activates when reviewing code changes involving auth, LLM calls, user data, or external API integrations.
+description: >
+  Security-focused code review for OpenSite/Toastability platform. Use when
+  reviewing PRs for security issues, auditing new API endpoints, checking for
+  HIPAA/SOC2 compliance violations, reviewing Rust unsafe code, or scanning for
+  injection vulnerabilities, data leakage, or auth bypasses. Auto-activates when
+  reviewing code changes involving auth, LLM calls, user data, or external API
+  integrations.
+compatibility: >
+  Designed for local repo inspection with grep or bash-style search tools;
+  review runs are read-only by default.
+metadata:
+  opensite-category: security
+  opensite-scope: shared
+  opensite-visibility: public
+allowed-tools: "Read Grep Glob Bash"
 context: fork
 agent: Explore
-allowed-tools: Read, Grep, Glob, Bash
 ---
-
 # Security Code Review Skill
+
+## Skill Resources
+- Activation and cross-agent notes: [references/activation.md](references/activation.md)
+- Use `ultrathink` or the deepest available reasoning mode before changing architecture, security, migration, or performance-critical paths.
+- Example: [examples/finding-example.md](examples/finding-example.md)
+- Helper: `scripts/run_review_checks.sh`
+
+## Task Focus for $ARGUMENTS
+When this skill is invoked explicitly, treat `$ARGUMENTS` as the primary scope to optimize around: a repo path, component name, incident id, rollout target, or other concrete task boundary.
 
 You are performing a security-focused code review of the OpenSite/Toastability codebase. This is a read-only review — no file modifications. Focus on security, compliance, and data safety.
 

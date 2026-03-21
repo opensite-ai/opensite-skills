@@ -3,13 +3,24 @@ name: react-rendering-performance
 description: >
   React 19+ rendering performance: React Compiler diagnostics, profiler-driven
   optimization, useTransition for non-blocking updates, the new Activity and
-  ViewTransition components, resource preloading APIs, and when to actually reach
-  for useMemo/useCallback vs letting the Compiler handle it. Use when debugging
-  slow renders, optimizing user-perceived performance, or implementing smooth
-  navigation transitions in React 19+ applications.
+  ViewTransition components, resource preloading APIs, and when to actually
+  reach for useMemo/useCallback vs letting the Compiler handle it. Use when
+  debugging slow renders, optimizing user-perceived performance, or implementing
+  smooth navigation transitions in React 19+ applications.
+compatibility: >
+  Requires React 19+ code and, ideally, React DevTools Profiler or runtime
+  traces for measurement.
+metadata:
+  opensite-category: frontend
+  opensite-scope: shared
+  opensite-visibility: public
 ---
-
 # React Rendering Performance
+
+## Skill Resources
+- Activation and cross-agent notes: [references/activation.md](references/activation.md)
+- Use `ultrathink` or the deepest available reasoning mode before changing architecture, security, migration, or performance-critical paths.
+- Template: [templates/profiler-session.md](templates/profiler-session.md)
 
 Performance work without measurement is guessing. The correct sequence: measure with the Profiler, identify the bottleneck type, then apply the right tool. Memoizing everything is not a strategy.
 

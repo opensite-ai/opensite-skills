@@ -1,0 +1,7 @@
+interface:
+  display_name: "Page-Speed Library"
+  short_description: "Help with Page-Speed Library tasks"
+  default_prompt: "Use $page-speed-library when creating or modifying @page-speed/* packages (blocks, router, forms, img, video, skins, maps, icon, lightbox, pdf-viewer, venn-diagram, hooks, social-share, humanizer) or the opensite-hooks and pressable libraries. Covers tsup bundling, peer dependency management, and the sub-library architecture."
+
+policy:
+  allow_implicit_invocation: true

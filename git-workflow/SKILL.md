@@ -1,10 +1,31 @@
 ---
 name: git-workflow
-description: Git workflow, branch conventions, PR patterns, and release management for OpenSite/Toastability repositories. Use when creating branches, writing commit messages, opening pull requests, managing monorepo packages, or coordinating cross-repo changes. Covers GitHub Actions CI patterns for Rust, Rails, and Next.js.
+description: >
+  Git workflow, branch conventions, PR patterns, and release management for
+  OpenSite/Toastability repositories. Use when creating branches, writing commit
+  messages, opening pull requests, managing monorepo packages, or coordinating
+  cross-repo changes. Covers GitHub Actions CI patterns for Rust, Rails, and
+  Next.js.
+compatibility: >
+  Requires git; GitHub CLI or API access helps for PR, release, and review
+  automation.
+metadata:
+  opensite-category: ops
+  opensite-scope: shared
+  opensite-visibility: public
+allowed-tools: "Read Grep Bash"
 disable-model-invocation: true
 ---
-
 # Git Workflow Skill
+
+## Skill Resources
+- Activation and cross-agent notes: [references/activation.md](references/activation.md)
+- Helper: `scripts/make_branch_name.py`
+- Helper: `scripts/validate_commit_message.py`
+- Template: [templates/pull-request-body.md](templates/pull-request-body.md)
+
+## Task Focus for $ARGUMENTS
+When this skill is invoked explicitly, treat `$ARGUMENTS` as the primary scope to optimize around: a repo path, component name, incident id, rollout target, or other concrete task boundary.
 
 You are following OpenSite/Toastability git conventions. These apply across all repos in the `opensite-ai` and `Toastability` organizations.
 

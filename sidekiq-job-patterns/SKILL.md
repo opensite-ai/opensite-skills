@@ -1,14 +1,25 @@
 ---
 name: sidekiq-job-patterns
 description: >
-  Production-grade Sidekiq job design covering idempotency, database-level locking,
-  transient vs permanent error classification, dead job management, and version-aware
-  API differences across Sidekiq 6.5.x through 8.x. IMPORTANT: Before writing any
-  Sidekiq job code, check the exact version in Gemfile.lock and load the docs via
-  Context7 — the API changed significantly between major versions.
+  Production-grade Sidekiq job design covering idempotency, database-level
+  locking, transient vs permanent error classification, dead job management, and
+  version-aware API differences across Sidekiq 6.5.x through 8.x. IMPORTANT:
+  Before writing any Sidekiq job code, check the exact version in Gemfile.lock
+  and load the docs via Context7 — the API changed significantly between major
+  versions.
+compatibility: >
+  Requires Ruby, Bundler, and the target Sidekiq version; version-specific docs
+  should be loaded before coding.
+metadata:
+  opensite-category: backend
+  opensite-scope: rails
+  opensite-visibility: public
 ---
-
 # Sidekiq Job Patterns
+
+## Skill Resources
+- Activation and cross-agent notes: [references/activation.md](references/activation.md)
+- Use `ultrathink` or the deepest available reasoning mode before changing architecture, security, migration, or performance-critical paths.
 
 ## Version-First Workflow
 

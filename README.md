@@ -242,10 +242,29 @@ Some skills use Claude Code extensions (`context: fork`, `disable-model-invocati
 
 | Skill | Claude Code behavior | Other platforms |
 | ------- | --------------------- | ----------------- |
-| `deploy-fly-io` | Requires explicit `/deploy-fly-io` (no auto-invoke) | Auto-invoke eligible |
-| `git-workflow` | Requires explicit `/git-workflow` | Auto-invoke eligible |
+| `deploy-fly-io` | Requires explicit `/deploy-fly-io` (no auto-invoke) | Explicit-only in Codex via `agents/openai.yaml` |
+| `git-workflow` | Requires explicit `/git-workflow` | Explicit-only in Codex via `agents/openai.yaml` |
 | `code-review-security` | Runs in forked subagent | Inline execution |
+| `postgres-performance-engineering` | Runs in forked subagent | Inline execution |
 | `sentry-monitoring` | Background only, not user-facing | Standard skill |
+
+---
+
+## Structural Standards
+
+Every skill now follows the same portable baseline:
+
+- `SKILL.md` contains standard `description`, `compatibility`, and `metadata` fields.
+- `agents/openai.yaml` provides Codex UI metadata and implicit-invocation policy.
+- `references/activation.md` gives a portable activation guide plus an explicit invocation example.
+- Complex skills may also ship `templates/`, `examples/`, or `scripts/` when those resources materially improve execution.
+
+Refresh and validate the structure with:
+
+```bash
+python3 scripts/refresh_skill_support.py
+python3 scripts/validate_skills.py
+```
 
 ---
 
@@ -266,10 +285,16 @@ Some skills use Claude Code extensions (`context: fork`, `disable-model-invocati
 ```
 opensite-skills/
 ├── <skill-name>/
-│   ├── SKILL.md          ← Edit this to update a skill
-│   └── *.md              ← Supporting reference docs
+│   ├── SKILL.md                 ← Main skill instructions + frontmatter
+│   ├── agents/openai.yaml       ← Codex/OpenAI UI metadata
+│   ├── references/activation.md ← Portable activation + invocation guide
+│   ├── templates/               ← Optional task/output templates
+│   ├── examples/                ← Optional sample outputs or briefs
+│   └── scripts/                 ← Optional helper or validation scripts
 ├── CLAUDE.md             ← Root context (Claude Code only)
 ├── README.md
+├── scripts/refresh_skill_support.py
+├── scripts/validate_skills.py
 ├── setup.sh              ← Symlink installer (Claude Code, Codex, Cursor)
 ├── sync-perplexity.sh    ← Perplexity Computer cloud sync
 ├── sync-claude.sh        ← Claude Desktop cloud sync

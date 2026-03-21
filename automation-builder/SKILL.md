@@ -1,14 +1,32 @@
 ---
 name: automation-builder
 description: >
-  Browser and system automation patterns for engineers building scripts that interact
-  with Cloudflare-protected SPAs, React file upload flows, and session-authenticated
-  dashboards. Also covers media automation tool selection (ffmpeg, ImageMagick, Sharp)
-  and shell script best practices. Use when scripting any headless or headed browser
-  interaction, file upload pipeline, or batch media processing task.
+  Browser and system automation patterns for engineers building scripts that
+  interact with Cloudflare-protected SPAs, React file upload flows, and
+  session-authenticated dashboards. Also covers media automation tool selection
+  (ffmpeg, ImageMagick, Sharp) and shell script best practices. Use when
+  scripting any headless or headed browser interaction, file upload pipeline, or
+  batch media processing task.
+compatibility: >
+  Requires shell access; browser flows work best with Node.js, Playwright, and a
+  local Chrome or Brave install.
+metadata:
+  opensite-category: ops
+  opensite-scope: shared
+  opensite-visibility: public
+allowed-tools: "Read Grep Bash"
 ---
-
 # Automation Builder
+
+## Skill Resources
+- Activation and cross-agent notes: [references/activation.md](references/activation.md)
+- Use `ultrathink` or the deepest available reasoning mode before changing architecture, security, migration, or performance-critical paths.
+- Reference: [references/media-tooling.md](references/media-tooling.md)
+- Helper: `scripts/check_toolchain.sh`
+- Template: [templates/automation-plan.md](templates/automation-plan.md)
+
+## Task Focus for $ARGUMENTS
+When this skill is invoked explicitly, treat `$ARGUMENTS` as the primary scope to optimize around: a repo path, component name, incident id, rollout target, or other concrete task boundary.
 
 ## Tool Selection Framework
 
@@ -319,86 +337,7 @@ fi
 
 ## Media Automation: Tool Selection
 
-### ffmpeg — Video and Audio
-
-Use for: transcoding, thumbnail extraction, format conversion, clip trimming, audio extraction.
-
-```bash
-# Extract thumbnail at 5 seconds
-ffmpeg -i input.mp4 -ss 00:00:05 -frames:v 1 thumbnail.jpg
-
-# Convert to web-optimized H.264
-ffmpeg -i input.mov \
-  -c:v libx264 -crf 23 -preset fast \
-  -c:a aac -b:a 128k \
-  -movflags +faststart \
-  output.mp4
-
-# Batch convert .mov → .mp4
-for f in *.mov; do
-  ffmpeg -i "$f" -c:v libx264 -crf 23 -preset fast "${f%.mov}.mp4"
-done
-
-# Extract audio
-ffmpeg -i input.mp4 -q:a 0 -map a output.mp3
-```
-
-### ImageMagick — Batch Image Processing
-
-Use for: bulk format conversion, compositing, text overlays, complex color operations, PDF rasterization.
-
-```bash
-# Resize all JPEGs to max 1200px wide, in-place
-mogrify -resize '1200x>' -quality 85 *.jpg
-
-# Convert PNG to WebP
-convert input.png -quality 80 output.webp
-
-# Strip EXIF metadata (reduces size, removes GPS)
-mogrify -strip *.jpg
-
-# Add watermark in bottom-right corner
-convert base.jpg -gravity SouthEast -geometry +10+10 watermark.png -composite output.jpg
-```
-
-### Sharp — Node.js Real-Time Image Processing
-
-Use for: server-side transforms in Node.js/TypeScript, dynamic resize on upload, generating format variants.
-
-```typescript
-import sharp from 'sharp';
-
-// Generate responsive format variants from an upload buffer
-async function generateVariants(input: Buffer, outputDir: string): Promise<void> {
-  const sizes = [
-    { name: 'sm',   width: 640  },
-    { name: 'md',   width: 1024 },
-    { name: 'lg',   width: 1536 },
-    { name: 'full', width: 2560 },
-  ];
-
-  await Promise.all(
-    sizes.flatMap(({ name, width }) => [
-      sharp(input)
-        .resize(width, null, { withoutEnlargement: true })
-        .webp({ quality: 80 })
-        .toFile(`${outputDir}/${name}.webp`),
-      sharp(input)
-        .resize(width, null, { withoutEnlargement: true })
-        .avif({ quality: 60 })
-        .toFile(`${outputDir}/${name}.avif`),
-    ]),
-  );
-}
-
-// Center-crop to square
-const cropped = await sharp(input)
-  .resize(400, 400, { fit: 'cover', position: 'center' })
-  .jpeg({ quality: 85, progressive: true })
-  .toBuffer();
-```
-
-**Sharp vs. ImageMagick**: Sharp is 10–50x faster for Node.js services (libvips underneath). Use Sharp for real-time server-side processing. Use ImageMagick for rich batch CLI workflows where its broader format support matters.
+Keep the main skill focused on browser, session, and upload automation. Load [references/media-tooling.md](references/media-tooling.md) only when the task also requires `ffmpeg`, ImageMagick, or Sharp examples.
 
 ---
 

@@ -1,0 +1,7 @@
+interface:
+  display_name: "Rust Error Handling"
+  short_description: "Help with Rust Error Handling tasks"
+  default_prompt: "Use $rust-error-handling when designing error types for a new module, deciding between thiserror and anyhow, or debugging opaque error messages in production."
+
+policy:
+  allow_implicit_invocation: true
