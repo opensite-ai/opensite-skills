@@ -1,10 +1,10 @@
-# Full Stack AI Coding Agent Skills + Multi Agent Support
+# AI Coding Agent Skills + Multi Agent Support
 
-## Single source of truth for the comprehensive and continually updating AI coding agent skills
+## Single source of truth for a comprehensive, continually updating set of AI coding agent skills
 
 ![Multi Agent Support AI Skills Library](https://octane.cdn.ing/api/v1/images/transform?url=https://cdn.ing/assets/i/r/297562/3b1o40e6650ce6yxbgdcrr83c35e/og.jpg&f=webp)
 
-The skills range from front end design specialization, Rust/Ruby/Node backend capabilities, along with utility commands and features that have been fine tuned in the development of the [OpenSite AI Platform](https://opensite.ai). And because the idea of trying to keep a constantly growing list of coding agents to all have nearly identical set of skills in sync *(especially considering that we run scheduled `deepening` tasks to continually refine the set of skills)* sounded like a special spot in hell I don't believe I did anything to deserve... we built out a full set of scripts that will let you keep a single repo of skills for all coding agents.
+A growing collection of skills spanning frontend design, Rust and Rails backend engineering, AI/RAG pipeline patterns, database performance, DevOps automation, and more — built to stay in sync across every AI coding agent you run. Because keeping Claude Code, Codex, Copilot, Cursor, and cloud platforms all individually up to date sounds like a special kind of hell, this repo ships a full set of scripts that maintain a single source of truth for all of them.
 
 These skills follow the [Agent Skills open standard](https://agentskills.io) and are compatible with:
 
@@ -13,8 +13,9 @@ These skills follow the [Agent Skills open standard](https://agentskills.io) and
 | **Claude Code** | `~/.claude/skills/` (global) or `.claude/skills/` (project) | Automatic + `/skill-name` |
 | **Claude Desktop** | Cloud upload — `claude.ai/customize/skills` | Automatic trigger |
 | **Codex** | `~/.codex/skills/` (global) or `.agents/skills/` (repo) | Automatic + `$skill-name` |
+| **GitHub Copilot** | `~/.copilot/skills/` (global) | Via `/` commands |
 | **Perplexity Computer** | Cloud upload — `perplexity.ai/account/org/skills` | Automatic trigger |
-| **Cursor / Copilot** | `.cursor/skills/` or `.github/skills/` per-repo | Via `/` commands |
+| **Cursor** | `.cursor/skills/` per-repo | Via `/` commands |
 
 > **One repo, zero copying.** Set this up once with the platform setup script and all tools read from the same directory via symlinks. Update a skill once — all tools see the change instantly.
 
@@ -33,7 +34,7 @@ cd ~/opensite-skills
 ./setup.sh
 ```
 
-The setup script creates symlinks from each platform's skills directory to this repo — no file copying.
+The setup script detects which platforms are installed and creates symlinks from each platform's skills directory to this repo — no file copying.
 
 ---
 
@@ -63,7 +64,7 @@ The store lives at `memory/store/` and is organized into four cognitive layers:
 
 ### Standard Session Workflow
 
-```bash
+```
 ┌─────────────────────────────────────────────────────────────┐
 │  SESSION START                                              │
 │  /memory-recall   ← loads working memory + relevant context │
@@ -127,14 +128,14 @@ python memory/scripts/write_memory.py \
   --type semantic --category technologies \
   --title "Axum Tower Middleware Pattern" \
   --content "When adding middleware in Axum 0.8+..." \
-  --tags "rust,axum,middleware" --project opensite-api
+  --tags "rust,axum,middleware" --project my-project
 
 # Multiline / markdown-safe write
 cat <<'EOF' | python memory/scripts/write_memory.py \
   --type procedural --category decisions \
-  --title "ADR: Use Axum over Actix-Web" \
+  --title "ADR: Use thiserror for library error types" \
   --content-stdin \
-  --tags "rust,axum,adr,architecture" --project opensite-api
+  --tags "rust,error-handling,adr,architecture" --project my-project
 ## Context
 ...
 
@@ -179,9 +180,9 @@ CLAUDE_SESSION_COOKIE="<value>"
 **URL used by the script:** `https://www.perplexity.ai/account/org/skills`
 
 ```bash
-./sync-perplexity.sh                   # sync all skills
-./sync-perplexity.sh --changed-only    # only git-modified skills since last commit
-./sync-perplexity.sh octane-rust-axum  # one specific skill by name
+./sync-perplexity.sh                    # sync all skills
+./sync-perplexity.sh --changed-only     # only git-modified skills since last commit
+./sync-perplexity.sh rails-query-optimization  # one specific skill by name
 ```
 
 **What it does per skill:**
@@ -207,9 +208,9 @@ Or upload manually: go to `perplexity.ai/account/org/skills` → **Upload skill*
 **URL used by the script:** `https://claude.ai/customize/skills`
 
 ```bash
-./sync-claude.sh                   # sync all skills
-./sync-claude.sh --changed-only    # only git-modified skills since last commit
-./sync-claude.sh octane-rust-axum  # one specific skill by name
+./sync-claude.sh                    # sync all skills
+./sync-claude.sh --changed-only     # only git-modified skills since last commit
+./sync-claude.sh rails-query-optimization  # one specific skill by name
 ```
 
 **What it does per skill:**
@@ -274,8 +275,7 @@ for skill in ~/opensite-skills/*/; do
 done
 ```
 
-> The setup script detects Copilot by checking for `~/.copilot` or the `gh` CLI. If
-> neither is present the section is skipped automatically.
+> The setup script detects Copilot by checking for `~/.copilot` or the `gh` CLI. If neither is present the section is skipped automatically.
 
 ### Repo-level (check in alongside code)
 
@@ -323,88 +323,78 @@ git push
 | `memory-write` | Extracts and persists session learnings | End of session / "save this" / "remember this" |
 | `memory-consolidate` | Decays confidence, deduplicates, compresses old sessions | Weekly / monthly / after bulk writes |
 
-### Octane — Rust + Axum
-
-| Skill | Description |
-| ------- | ------------- |
-| `octane-rust-axum` | Axum 0.8 handler/route/service patterns |
-| `octane-soc2-hipaa` | SOC2 + HIPAA compliance — `AuditedLlmProvider`, PHI rules |
-| `octane-llm-engine` | Self-hosted LLM engine (vLLM, Llama 3.3, traits, routing) |
-| `octane-embedding-pipeline` | BGE-M3, Qwen3-Embedding, Milvus vector search |
-
 ### AI / Research
 
 | Skill | Description |
 | ------- | ------------- |
-| `ai-research-workflow` | Multi-step research orchestration with Opus 4.6 |
-| `ai-retrieval-patterns` | RAG patterns, hybrid search, reranking |
+| `ai-research-workflow` | Multi-step AI research orchestration: `WorkflowBuilder`/`WorkflowStep` system, dual-model routing (Opus for deep research + web search, Sonnet for structured generation), parallel step execution, shared `MemoryStore` between steps, and `ai_tasks` persistence pattern |
+| `ai-retrieval-patterns` | Retrieval architecture decision framework — when to use vector RAG, PageIndex (vectorless PDF tree-search), or precision embedding models. Covers Milvus collection design, hybrid two-stage pipelines, the `EmbeddingProvider` abstraction (BGE-M3, Qwen3), and the routing layer that ties strategies together |
 
 ### UI / Frontend
 
 | Skill | Description |
 | ------- | ------------- |
-| `opensite-ui-components` | `@opensite/ui@3.x` component patterns |
-| `tailwind4-shadcn` | Tailwind v4 + ShadCN (new-york style) |
-| `page-speed-library` | `@page-speed/*` library development |
-| `semantic-ui-builder` | AI-powered site builder patterns |
-| `client-side-routing-patterns` | SPA routing, layout, transitions |
-| `react-rendering-performance` | React 19 rendering, Suspense, concurrent patterns |
+| `opensite-ui-components` | `@opensite/ui@3.x` component patterns — Semantic UI Engine, block/skin architecture, Radix UI, framer-motion, Tailwind CSS v4, and the component registry system |
+| `tailwind4-shadcn` | Tailwind CSS v4 + ShadCN UI (new-york style): CSS-first configuration, CSS variable theming, v3→v4 migration patterns, and the style dashboard / tweakcn-inspired customization workflow |
+| `page-speed-library` | `@page-speed/*` sub-library development: tsup bundling, peer dependency management, and the full package graph (`blocks`, `router`, `forms`, `img`, `video`, `skins`, `hooks`, `lightbox`, `pdf-viewer`, and more) |
+| `semantic-ui-builder` | AI-powered site builder patterns: component registry lookups, structured-output UI generation, block selection and skin application, and the v0-clone-inspired builder interface |
+| `client-side-routing-patterns` | Client-side routing with the History API — `pushState`/`replaceState`, `popstate` listeners, provider-optional hooks, SSR-safe browser API access, scroll behavior, and parameter parsing |
+| `react-rendering-performance` | React 19+ rendering performance: React Compiler diagnostics, profiler-driven optimization, `useTransition` for non-blocking updates, `Activity` and `ViewTransition` components, resource preloading APIs, and when to actually reach for `useMemo`/`useCallback` |
 
 ### Rails / Backend
 
 | Skill | Description |
 | ------- | ------------- |
-| `rails-api-patterns` | Rails API design, service layer, and background job conventions |
-| `rails-query-optimization` | N+1 elimination, eager loading, query analysis |
-| `rails-zero-downtime-migrations` | Safe schema changes without downtime |
-| `sidekiq-job-patterns` | Background jobs, retries, concurrency |
+| `rails-query-optimization` | Advanced ActiveRecord optimization: diagnosing N+1 beyond simple `includes`, the cartesian product trap with multiple `has_many` eager loads, CTEs and lateral joins via Arel and raw SQL, reading `EXPLAIN ANALYZE` output, and counter cache patterns |
+| `rails-zero-downtime-migrations` | Safe schema changes without downtime: the hot-compatibility principle, concurrent index creation, multi-step column operations, constraint validation strategies, and release-phase coordination |
+| `sidekiq-job-patterns` | Production-grade Sidekiq job design: idempotency, database-level locking, transient vs permanent error classification, dead job management, and version-aware API differences across Sidekiq 6.5.x through 8.x |
+
+### Rust / Backend
+
+| Skill | Description |
+| ------- | ------------- |
+| `rust-async-patterns` | Senior-level async Rust: `Future` `Send` bound failures, Rust 2024 lifetime capture rules, task cancellation with `CancellationToken`, blocking/async boundary design, and timeout composition with Tokio |
+| `rust-error-handling` | Idiomatic Rust error design: `thiserror` vs `anyhow` boundary decisions, error hierarchy design, context chain propagation, HTTP handler error mapping, and patterns that prevent error type proliferation |
 
 ### Database / Performance
 
 | Skill | Description |
 | ------- | ------------- |
-| `pgvector-optimization` | pgvector indexing, HNSW, distance functions |
-| `postgres-performance-engineering` | Query planning, indexing, EXPLAIN ANALYZE |
-| `rust-async-patterns` | Tokio tasks, channels, concurrency patterns |
-| `rust-error-handling` | `thiserror`, `AppError`, error propagation patterns |
+| `pgvector-optimization` | pgvector performance: HNSW vs IVFFlat index selection and tuning, `ef_search` / `m` / `ef_construction` parameters, iterative scanning for filtered queries, scalar and binary quantization for memory reduction, and dimensionality compression |
+| `postgres-performance-engineering` | PostgreSQL performance engineering beyond basic indexing: query plan instability, statistics staleness, `EXPLAIN ANALYZE` interpretation, GIN index pending list management, extended statistics for correlated columns, PgBouncer pooling modes, and autovacuum tuning |
 
 ### DevOps / Operations
 
 | Skill | Description |
 | ------- | ------------- |
-| `agent-file-engine` | Root + nested `AGENTS.md` authoring and coverage planning |
-| `deploy-fly-io` | Fly.io + Tigris deployment (manual-invoke only) |
-| `sentry-monitoring` | Error tracking across all services |
-| `git-workflow` | Branch, commit, PR conventions (manual-invoke only) |
-| `automation-builder` | Workflow automation, scripting patterns |
+| `agent-file-engine` | Root and nested `AGENTS.md` authoring and coverage planning — repo inventory, scope model decisions, quality bar for what earns a nested file, and templates for root and nested agent context files |
+| `git-workflow` | Branch naming, Conventional Commits, PR templates, cross-repo change coordination, GitHub Actions CI patterns for Rust and Rails, hotfix process, and database migration safety checklist (manual-invoke only) |
+| `automation-builder` | Browser and system automation: Playwright + real browser binary for Cloudflare-protected SPAs, session cookie injection, SPA readiness patterns, React `filechooser` upload flow, error recovery in loops, shell script safety headers, and media tool selection (ffmpeg, ImageMagick, Sharp) |
 
 ### Quality / Security
 
 | Skill | Description |
 | ------- | ------------- |
-| `code-review-security` | Security-focused PR review (forked subagent) |
-| `gpu-workers-python` | RunPod GPU worker patterns |
+| `code-review-security` | Security-focused PR review: PHI/PII data leakage detection, authentication and authorization coverage, SQL injection scanning, secrets/credential exposure, SSRF risk in external HTTP calls, unsafe Rust code auditing, LLM output trust boundaries, and rate limiting on expensive endpoints |
 
 ---
 
 ## Claude Code–Specific Frontmatter
 
-Some skills use Claude Code extensions (`context: fork`, `disable-model-invocation`, `user-invocable`). These fields are **unknown YAML** to Codex, Perplexity, and Cursor — they are silently ignored. Safe to leave in place; they only activate on Claude Code.
+Some skills use Claude Code extensions (`context: fork`, `disable-model-invocation`, `user-invocable`). These fields are **unknown YAML** to Codex, Perplexity, Cursor, and Copilot — they are silently ignored. Safe to leave in place; they only activate on Claude Code.
 
 | Skill | Claude Code behavior | Other platforms |
 | ------- | --------------------- | ----------------- |
 | `agent-file-engine` | Runs in forked subagent for repo analysis | Inline execution |
-| `deploy-fly-io` | Requires explicit `/deploy-fly-io` (no auto-invoke) | Explicit-only in Codex via `agents/openai.yaml` |
-| `git-workflow` | Requires explicit `/git-workflow` | Explicit-only in Codex via `agents/openai.yaml` |
+| `git-workflow` | Requires explicit `/git-workflow` (no auto-invoke) | Explicit-only via `agents/openai.yaml` |
 | `code-review-security` | Runs in forked subagent | Inline execution |
 | `postgres-performance-engineering` | Runs in forked subagent | Inline execution |
-| `sentry-monitoring` | Background only, not user-facing | Standard skill |
 
 ---
 
 ## Structural Standards
 
-Every skill now follows the same portable baseline:
+Every skill follows the same portable baseline:
 
 - `SKILL.md` contains standard `description`, `compatibility`, and `metadata` fields.
 - `agents/openai.yaml` provides Codex UI metadata and implicit-invocation policy.
@@ -422,13 +412,15 @@ python3 scripts/validate_skills.py
 
 ## Platform Conventions (Preserved Across All Tools)
 
-1. **PHI Safety** — No user content in logs. Always hash prompts before audit logging.
-2. **Typed State in Axum** — `State<Arc<HandlerState>>`, never `Extension<Pool>`
-3. **CSS Variables** — `bg-background`, `text-foreground`, never `bg-white`
-4. **SOC2 Audit Trail** — Every LLM call wrapped in `AuditedLlmProvider`
-5. **Schema Ownership** — Nominate a single service to own migrations; all others sync from it
-6. **Fly.io Private Network** — `{app}.internal:{port}` addresses for service-to-service calls
-7. **Tigris S3** — `https://fly.storage.tigris.dev` endpoint for object storage
+These conventions emerge directly from the skills in this repo and apply regardless of which AI engine is active:
+
+1. **Real Browser for Bot-Protected SPAs** — Use Playwright with a real Brave/Chrome binary in headed mode for any site behind Cloudflare. Headless Chromium is fingerprinted and blocked. (`automation-builder`)
+2. **CSS Variables over Color Values** — Use `bg-background`, `text-foreground`, `border-border`; never `bg-white` or hardcoded hex values. (`tailwind4-shadcn`, `opensite-ui-components`)
+3. **Parameterized Queries Always** — Never construct SQL via string interpolation or concatenation in any language. (`code-review-security`, `rails-query-optimization`)
+4. **Measure Before Optimizing** — Run `EXPLAIN (ANALYZE, BUFFERS)` and use the React Profiler before changing a query or adding memoization. Guessing direction is wrong most of the time. (`postgres-performance-engineering`, `react-rendering-performance`)
+5. **`thiserror` for Libraries, `anyhow` for Applications** — The wrong choice at a module boundary forces error type changes across every caller. (`rust-error-handling`)
+6. **Session Cookies, Not Login Automation** — Inject session cookies extracted from DevTools rather than automating login flows to avoid CAPTCHAs, 2FA, and rate limits. (`automation-builder`)
+7. **Hot-Compatibility for Migrations** — Every schema change must be safe to run while the old application version is still serving traffic. Deploy code before the breaking migration, not after. (`rails-zero-downtime-migrations`)
 
 ---
 
@@ -436,40 +428,59 @@ python3 scripts/validate_skills.py
 
 ```
 opensite-skills/
-├── memory/                      ← Core memory store + scripts
+├── memory/                        ← Core memory store + scripts
 │   ├── SKILL.md
 │   ├── scripts/
 │   │   ├── write_memory.py
 │   │   ├── search_memory.py
 │   │   ├── list_memories.py
 │   │   └── consolidate.py
-│   └── store/                   ← gitignored — local only
+│   └── store/                     ← gitignored — local only
 │       ├── episodic/
 │       ├── semantic/
 │       ├── procedural/
 │       └── working/
-├── memory-recall/               ← Context retrieval agent
+├── memory-recall/                 ← Context retrieval agent
 │   └── SKILL.md
-├── memory-write/                ← Session capture agent
+├── memory-write/                  ← Session capture agent
 │   └── SKILL.md
-├── memory-consolidate/          ← Maintenance agent
+├── memory-consolidate/            ← Maintenance agent
 │   └── SKILL.md
+├── ai-research-workflow/          ← Multi-step AI pipeline orchestration
+├── ai-retrieval-patterns/         ← RAG, PageIndex, hybrid retrieval
+├── agent-file-engine/             ← AGENTS.md authoring + coverage planning
+├── automation-builder/            ← Playwright, shell, and media automation
+├── client-side-routing-patterns/  ← History API, SPA routing hooks
+├── code-review-security/          ← Security-focused PR review
+├── git-workflow/                  ← Branch, commit, PR, CI conventions
+├── opensite-ui-components/        ← @opensite/ui component patterns
+├── page-speed-library/            ← @page-speed/* package development
+├── pgvector-optimization/         ← pgvector HNSW/IVFFlat tuning
+├── postgres-performance-engineering/ ← Query planning, vacuuming, PgBouncer
+├── rails-query-optimization/      ← N+1, CTEs, EXPLAIN ANALYZE
+├── rails-zero-downtime-migrations/ ← Safe schema changes on live databases
+├── react-rendering-performance/   ← React 19 Compiler, Profiler, transitions
+├── rust-async-patterns/           ← Tokio, Send bounds, cancellation
+├── rust-error-handling/           ← thiserror/anyhow, error hierarchy design
+├── semantic-ui-builder/           ← AI-powered site builder patterns
+├── sidekiq-job-patterns/          ← Idempotency, locking, version-aware API
+├── tailwind4-shadcn/              ← Tailwind v4 + ShadCN theming
 ├── <skill-name>/
-│   ├── SKILL.md                 ← Main skill instructions + frontmatter
-│   ├── agents/openai.yaml       ← Codex/OpenAI UI metadata
-│   ├── references/activation.md ← Portable activation + invocation guide
-│   ├── templates/               ← Optional task/output templates
-│   ├── examples/                ← Optional sample outputs or briefs
-│   └── scripts/                 ← Optional helper or validation scripts
-├── AGENTS.md             ← Root context (Codex, Cursor, Copilot, Windsurf, Cline)
-├── CLAUDE.md             ← Root context (Claude Code only)
+│   ├── SKILL.md                   ← Main skill instructions + frontmatter
+│   ├── agents/openai.yaml         ← Codex/OpenAI UI metadata
+│   ├── references/activation.md  ← Portable activation + invocation guide
+│   ├── templates/                 ← Optional task/output templates
+│   ├── examples/                  ← Optional sample outputs or briefs
+│   └── scripts/                   ← Optional helper or validation scripts
+├── AGENTS.md              ← Root context (Codex, Cursor, Copilot, Windsurf, Cline)
+├── CLAUDE.md              ← Root context (Claude Code only)
 ├── README.md
 ├── scripts/refresh_skill_support.py
 ├── scripts/validate_skills.py
-├── setup.sh              ← Symlink installer (Claude Code, Codex, Cursor)
-├── sync-perplexity.sh    ← Perplexity Computer cloud sync
-├── sync-claude.sh        ← Claude Desktop cloud sync
-└── .env                  ← Session cookies (gitignored)
+├── setup.sh               ← Symlink installer (Claude Code, Codex, Copilot, Cursor)
+├── sync-perplexity.sh     ← Perplexity Computer cloud sync
+├── sync-claude.sh         ← Claude Desktop cloud sync
+└── .env                   ← Session cookies (gitignored)
 ```
 
 Any tool that reads via symlink picks up changes immediately (no reinstall needed).
