@@ -20,7 +20,7 @@ These skills follow the [Agent Skills open standard](https://agentskills.io) and
 
 ## Quick Setup
 
-> For local platforms: Claude Code, Codex, and Cursor. Dedicated scripts for cloud platforms (Perplexity, Claude Desktop) below.
+> For local platforms: Claude Code, Codex, Cursor, and GitHub Copilot. Dedicated scripts for cloud platforms (Perplexity, Claude Desktop) below.
 
 ```bash
 # 1. Clone to a stable location
@@ -248,6 +248,19 @@ for skill in ~/opensite-skills/*/; do
   ln -sfn "$skill" ~/.codex/skills/"$skill_name"
 done
 ```
+
+### GitHub Copilot (global)
+
+```bash
+mkdir -p ~/.copilot/skills
+for skill in ~/opensite-skills/*/; do
+  skill_name=$(basename "$skill")
+  ln -sfn "$skill" ~/.copilot/skills/"$skill_name"
+done
+```
+
+> The setup script detects Copilot by checking for `~/.copilot` or the `gh` CLI. If
+> neither is present the section is skipped automatically.
 
 ### Repo-level (check in alongside code)
 

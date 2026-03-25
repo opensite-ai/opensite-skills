@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =============================================================================
-# OpenSite / Toastability — Agent Skills Setup
+# OpenSite Agent Skills Setup
 # Sets up symlinks from all supported AI agent platforms to this shared repo.
 # Run from anywhere; SKILLS_DIR is resolved to the repo root automatically.
 # =============================================================================
@@ -11,7 +11,7 @@ PLATFORMS=()
 
 echo ""
 echo "╔══════════════════════════════════════════════════════════════╗"
-echo "║         OpenSite / Toastability — Agent Skills Setup         ║"
+echo "║         OpenSite Agent Skills Setup                          ║"
 echo "╚══════════════════════════════════════════════════════════════╝"
 echo ""
 echo "Source: $SKILLS_DIR"
@@ -79,6 +79,20 @@ else
 fi
 echo ""
 
+# ── GitHub Copilot ───────────────────────────────────────────────────────────
+COPILOT_SKILLS="$HOME/.copilot/skills"
+if command -v gh &>/dev/null || [ -d "$HOME/.copilot" ]; then
+  echo "── GitHub Copilot ────────────────────────────────────────────"
+  mkdir -p "$COPILOT_SKILLS"
+  for skill in "$SKILLS_DIR"/*/; do
+    link_skill "$skill" "$COPILOT_SKILLS"
+  done
+  PLATFORMS+=("GitHub Copilot")
+else
+  echo "── GitHub Copilot — SKIPPED (not installed)"
+fi
+echo ""
+
 # ── Repo-level (optional) ────────────────────────────────────────────────────
 if [ "${LINK_REPO:-0}" = "1" ]; then
   echo "── Repo-level (.agents/skills) ───────────────────────────────"
@@ -90,25 +104,20 @@ if [ "${LINK_REPO:-0}" = "1" ]; then
   echo ""
 fi
 
-# ── Perplexity notice ────────────────────────────────────────────────────────
-echo "── Perplexity Computer ───────────────────────────────────────"
-echo "  Perplexity stores skills in the cloud — symlinks don't apply."
-echo "  Run './sync-perplexity.sh' to upload, or go to:"
-echo "  Skills → Create Skill → Upload a Skill"
-echo ""
-
 # ── Summary ──────────────────────────────────────────────────────────────────
 SKILL_COUNT=$(find "$SKILLS_DIR" -name "SKILL.md" | wc -l | tr -d ' ')
 echo "══════════════════════════════════════════════════════════════"
 if [ ${#PLATFORMS[@]} -gt 0 ]; then
   echo "  Linked $SKILL_COUNT skills across: ${PLATFORMS[*]}"
 else
-  echo "  No platforms detected. Install Claude Code, Codex, or Cursor first."
+  echo "  No platforms detected. Install Claude Code, Codex, Copilot (gh), or Cursor first."
   echo "  Then re-run this script."
 fi
 echo ""
 echo "  To update skills: edit files in $SKILLS_DIR"
 echo "  Changes are live immediately (no reinstall needed)."
-echo "  Perplexity: re-run ./sync-perplexity.sh after changes."
+echo ""
+echo "  To Sync Perplexity Cloud Skills: run ./sync-perplexity.sh"
+echo "  To Sync Claude Desktop Skills: run ./sync-claude.sh"
 echo "══════════════════════════════════════════════════════════════"
 echo ""
