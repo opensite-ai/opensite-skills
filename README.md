@@ -1,6 +1,8 @@
-# OpenSite AI Coding Agent Skills + Multi Agent Support
+# Full Stack AI Coding Agent Skills + Multi Agent Support
 
 ## Single source of truth for the comprehensive and continually updating AI coding agent skills
+
+![Multi Agent Support AI Skills Library](https://octane.cdn.ing/api/v1/images/transform?url=https://cdn.ing/assets/i/r/297562/3b1o40e6650ce6yxbgdcrr83c35e/og.jpg&f=webp)
 
 The skills range from front end design specialization, Rust/Ruby/Node backend capabilities, along with utility commands and features that have been fine tuned in the development of the [OpenSite AI Platform](https://opensite.ai). And because the idea of trying to keep a constantly growing list of coding agents to all have nearly identical set of skills in sync *(especially considering that we run scheduled `deepening` tasks to continually refine the set of skills)* sounded like a special spot in hell I don't believe I did anything to deserve... we built out a full set of scripts that will let you keep a single repo of skills for all coding agents.
 
