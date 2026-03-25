@@ -40,7 +40,12 @@ def extract_summary(text: str, fm: dict) -> str:
     m = re.search(r"## Summary\n(.*?)(?=\n##|\Z)", text, re.DOTALL)
     if m:
         return m.group(1).strip()[:200]
-    lines = [l.strip() for l in text.splitlines() if l.strip() and not l.startswith("#") and not l.startswith("---")]
+    text_without_frontmatter = re.sub(r"^---\n.*?\n---\n?", "", text, flags=re.DOTALL)
+    lines = [
+        l.strip()
+        for l in text_without_frontmatter.splitlines()
+        if l.strip() and not l.startswith("#") and not l.startswith("---")
+    ]
     return " ".join(lines[:2])[:200]
 
 

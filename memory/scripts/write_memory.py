@@ -117,21 +117,25 @@ def write_memory(
 
     if memory_type == "working":
         category = "active"
-        filename = "active.md"
         overwrite = True
+        target_dir = MEMORY_ROOT / memory_type
+        target_dir.mkdir(parents=True, exist_ok=True)
+        target_path = target_dir / "active.md"
+        entry_id = "working-active"
     elif memory_type == "episodic" and category == "sessions":
         filename = f"{date_str}-{slug}.md"
+        target_dir = MEMORY_ROOT / memory_type / category
+        target_dir.mkdir(parents=True, exist_ok=True)
+        target_path = target_dir / filename
+        entry_id = str(uuid.uuid4())[:8]
     else:
         filename = f"{slug}.md"
-
-    # Build target path
-    target_dir = MEMORY_ROOT / memory_type / category
-    if memory_type == "semantic" and category == "projects" and project:
-        target_dir = target_dir / slugify(project)
-    target_dir.mkdir(parents=True, exist_ok=True)
-    target_path = target_dir / filename
-
-    entry_id = str(uuid.uuid4())[:8]
+        target_dir = MEMORY_ROOT / memory_type / category
+        if memory_type == "semantic" and category == "projects" and project:
+            target_dir = target_dir / slugify(project)
+        target_dir.mkdir(parents=True, exist_ok=True)
+        target_path = target_dir / filename
+        entry_id = str(uuid.uuid4())[:8]
 
     if target_path.exists() and not overwrite:
         # Append update block to existing file
@@ -145,22 +149,38 @@ def write_memory(
             f"✏️  Updated existing: {target_path.relative_to(MEMORY_ROOT.parent.parent)}"
         )
     else:
-        summary = extract_summary(content)
-        full_content = (
-            make_frontmatter(
-                entry_id,
-                memory_type,
-                category,
-                title,
-                tags,
-                project,
-                confidence,
-                date_str,
+        if memory_type == "working":
+            full_content = (
+                make_frontmatter(
+                    entry_id,
+                    memory_type,
+                    category,
+                    title,
+                    tags,
+                    project,
+                    confidence,
+                    date_str,
+                )
+                + f"\n# {title}\n\n"
+                + f"{content.strip()}\n"
             )
-            + f"\n# {title}\n\n"
-            + f"## Summary\n{summary}\n\n"
-            + f"## Content\n{content.strip()}\n"
-        )
+        else:
+            summary = extract_summary(content)
+            full_content = (
+                make_frontmatter(
+                    entry_id,
+                    memory_type,
+                    category,
+                    title,
+                    tags,
+                    project,
+                    confidence,
+                    date_str,
+                )
+                + f"\n# {title}\n\n"
+                + f"## Summary\n{summary}\n\n"
+                + f"## Content\n{content.strip()}\n"
+            )
         target_path.write_text(full_content, encoding="utf-8")
         print(f"✅ Written: {target_path.relative_to(MEMORY_ROOT.parent.parent)}")
 
