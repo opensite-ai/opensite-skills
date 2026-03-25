@@ -34,3 +34,7 @@ memory/
 | `consolidate.py` | Confidence decay, duplicate detection, session compression |
 
 No external dependencies. Python 3.8+ only.
+
+`write_memory.py` accepts inline content via `--content`, but for multiline markdown,
+code fences, or shell-sensitive text you should prefer `--content-stdin` or
+`--content-file`.

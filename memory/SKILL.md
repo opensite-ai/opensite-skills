@@ -83,13 +83,35 @@ python {baseDir}/scripts/write_memory.py \
   --project opensite-api
 ```
 
+### Write multiline markdown safely
+Use stdin or a file when the content includes markdown, code fences, backticks, or multiple paragraphs.
+
+```bash
+cat <<'EOF' | python {baseDir}/scripts/write_memory.py \
+  --type procedural \
+  --category decisions \
+  --title "ADR: Use Axum over Actix-Web" \
+  --content-stdin \
+  --tags "rust,axum,architecture,adr" \
+  --project opensite-api
+## Context
+Needed async HTTP framework...
+
+## Decision
+Axum...
+
+## Rationale
+...
+EOF
+```
+
 ### Write a procedural decision (ADR)
 ```bash
 python {baseDir}/scripts/write_memory.py \
   --type procedural \
   --category decisions \
   --title "ADR: Use Axum over Actix-Web" \
-  --content "## Context\nNeeded async HTTP framework...\n\n## Decision\nAxum...\n\n## Rationale\n..." \
+  --content-file /tmp/axum-adr.md \
   --tags "rust,axum,architecture,adr" \
   --project opensite-api
 ```

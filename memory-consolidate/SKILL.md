@@ -47,7 +47,7 @@ Merge the content into the better-named file, then delete the redundant entry:
 ```bash
 python {baseDir}/../memory/scripts/write_memory.py \
   --type {type} --category {category} --title "{merged-title}" \
-  --content "{merged-content}" --tags "{merged-tags}" --project "{project}" \
+  --content-file /tmp/merged-memory.md --tags "{merged-tags}" --project "{project}" \
   --overwrite
 ```
 

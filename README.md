@@ -128,6 +128,19 @@ python memory/scripts/write_memory.py \
   --title "Axum Tower Middleware Pattern" \
   --content "When adding middleware in Axum 0.8+..." \
   --tags "rust,axum,middleware" --project opensite-api
+
+# Multiline / markdown-safe write
+cat <<'EOF' | python memory/scripts/write_memory.py \
+  --type procedural --category decisions \
+  --title "ADR: Use Axum over Actix-Web" \
+  --content-stdin \
+  --tags "rust,axum,adr,architecture" --project opensite-api
+## Context
+...
+
+## Decision
+...
+EOF
 ```
 
 ---

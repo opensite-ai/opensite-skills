@@ -8,6 +8,10 @@ Usage:
         --title "Session: 2026-03-25 rust-axum" \
         --content "Worked on..." --tags "rust,axum,session" --project opensite-api
 
+    cat note.md | python write_memory.py --type episodic --category sessions \
+        --title "Session: 2026-03-25 rust-axum" \
+        --content-stdin --tags "rust,axum,session" --project opensite-api
+
 No external dependencies required. Python 3.8+ only.
 """
 
@@ -100,6 +104,22 @@ def make_frontmatter(
 def extract_summary(content: str) -> str:
     lines = [l.strip() for l in content.strip().splitlines() if l.strip()]
     return " ".join(lines[:3])[:200]
+
+
+def read_content(args: argparse.Namespace) -> str:
+    if args.content is not None:
+        return args.content
+
+    if args.content_file:
+        if args.content_file == "-":
+            return sys.stdin.read()
+
+        return Path(args.content_file).read_text(encoding="utf-8")
+
+    if args.content_stdin:
+        return sys.stdin.read()
+
+    raise ValueError("one of --content, --content-file, or --content-stdin is required")
 
 
 def write_memory(
@@ -210,7 +230,17 @@ if __name__ == "__main__":
     parser.add_argument("--type", required=True, choices=list(VALID_TYPES))
     parser.add_argument("--category", required=True)
     parser.add_argument("--title", required=True)
-    parser.add_argument("--content", required=True)
+    content_group = parser.add_mutually_exclusive_group(required=True)
+    content_group.add_argument("--content", help="Inline content string")
+    content_group.add_argument(
+        "--content-file",
+        help="Read content from a UTF-8 file path. Use '-' to read from stdin."
+    )
+    content_group.add_argument(
+        "--content-stdin",
+        action="store_true",
+        help="Read content from stdin. Recommended for multiline markdown."
+    )
     parser.add_argument("--tags", default="", help="Comma-separated list of tags")
     parser.add_argument("--project", default=None)
     parser.add_argument(
@@ -220,12 +250,13 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     tags = [t.strip() for t in args.tags.split(",") if t.strip()]
+    content = read_content(args)
 
     write_memory(
         memory_type=args.type,
         category=args.category,
         title=args.title,
-        content=args.content,
+        content=content,
         tags=tags,
         project=args.project,
         confidence=args.confidence,

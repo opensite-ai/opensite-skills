@@ -10,6 +10,10 @@ allowed-tools: "Read, Write, Bash, Glob, Grep, Edit"
 You are the memory-write sub-agent. Your role is to analyze the current session and
 persist all valuable knowledge to the long-term memory store before the context is lost.
 
+For multiline markdown bodies, code fences, or any text that contains shell-sensitive
+characters, do not pass the body through inline `--content`. Use a heredoc with
+`--content-stdin` or write the body to a temp file and use `--content-file`.
+
 ## Trigger Conditions
 
 Run this skill when:
@@ -62,13 +66,28 @@ python {baseDir}/../memory/scripts/search_memory.py --query "{topic keywords}" -
 ## Step 4 — Write Session Summary (Always)
 
 ```bash
-python {baseDir}/../memory/scripts/write_memory.py \
+cat <<'EOF' | python {baseDir}/../memory/scripts/write_memory.py \
   --type episodic \
   --category sessions \
   --title "Session: {YYYY-MM-DD} — {brief-3-word-slug}" \
-  --content "## Goal\n{what we set out to do}\n\n## Outcome\n{what was accomplished}\n\n## Key Decisions\n{decisions made}\n\n## Problems Solved\n{issues encountered and resolutions}\n\n## Next Steps\n{what remains}" \
+  --content-stdin \
   --tags "{comma,separated,tags}" \
   --project "{active-project-or-null}"
+## Goal
+{what we set out to do}
+
+## Outcome
+{what was accomplished}
+
+## Key Decisions
+{decisions made}
+
+## Problems Solved
+{issues encountered and resolutions}
+
+## Next Steps
+{what remains}
+EOF
 ```
 
 ## Step 5 — Write Semantic Memories
@@ -100,24 +119,46 @@ python {baseDir}/../memory/scripts/write_memory.py \
 
 For Architecture Decision Records:
 ```bash
-python {baseDir}/../memory/scripts/write_memory.py \
+cat <<'EOF' | python {baseDir}/../memory/scripts/write_memory.py \
   --type procedural \
   --category decisions \
   --title "ADR: {Decision Title}" \
-  --content "## Context\n{why this decision was needed}\n\n## Decision\n{what was decided}\n\n## Rationale\n{why this option was chosen}\n\n## Trade-offs\n{what we gave up}\n\n## Status\nAccepted" \
+  --content-stdin \
   --tags "adr,{relevant-tech-tags}" \
   --project "{project}"
+## Context
+{why this decision was needed}
+
+## Decision
+{what was decided}
+
+## Rationale
+{why this option was chosen}
+
+## Trade-offs
+{what we gave up}
+
+## Status
+Accepted
+EOF
 ```
 
 For established workflows:
 ```bash
-python {baseDir}/../memory/scripts/write_memory.py \
+cat <<'EOF' | python {baseDir}/../memory/scripts/write_memory.py \
   --type procedural \
   --category workflows \
   --title "{Workflow Name}" \
-  --content "## Steps\n1. {step}\n2. {step}\n\n## Notes\n{gotchas}" \
+  --content-stdin \
   --tags "workflow,{tech-tags}" \
   --project "{project}"
+## Steps
+1. {step}
+2. {step}
+
+## Notes
+{gotchas}
+EOF
 ```
 
 ## Step 7 — Update Working Memory
@@ -125,13 +166,34 @@ python {baseDir}/../memory/scripts/write_memory.py \
 Replace active.md with the next-session handoff state:
 
 ```bash
-python {baseDir}/../memory/scripts/write_memory.py \
+cat <<'EOF' | python {baseDir}/../memory/scripts/write_memory.py \
   --type working \
   --category active \
   --title "Active Context" \
-  --content "## Current Project\n{project name}\n\n## Active Task\n{task description and current status}\n\n## In Progress\n{what is partially done}\n\n## Next Steps\n{ordered list of what comes next}\n\n## Active Files\n{key files being worked on}\n\n## Open Questions\n{unresolved decisions or unknowns}\n\n## Last Session\n{YYYY-MM-DD} — {brief summary}" \
+  --content-stdin \
   --tags "working,active,session" \
   --overwrite
+## Current Project
+{project name}
+
+## Active Task
+{task description and current status}
+
+## In Progress
+{what is partially done}
+
+## Next Steps
+{ordered list of what comes next}
+
+## Active Files
+{key files being worked on}
+
+## Open Questions
+{unresolved decisions or unknowns}
+
+## Last Session
+{YYYY-MM-DD} — {brief summary}
+EOF
 ```
 
 ## Step 8 — Report
