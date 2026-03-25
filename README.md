@@ -24,7 +24,7 @@ These skills follow the [Agent Skills open standard](https://agentskills.io) and
 
 ```bash
 # 1. Clone to a stable location
-git clone git@github.com:Toastability/opensite-skills.git ~/opensite-skills
+git clone git@github.com:opensite-ai/opensite-skills.git ~/opensite-skills
 cd ~/opensite-skills
 
 # 2. Run the setup script
@@ -32,6 +32,101 @@ cd ~/opensite-skills
 ```
 
 The setup script creates symlinks from each platform's skills directory to this repo — no file copying.
+
+---
+
+## Memory System — Persistent Long-Term Context
+
+This repo ships four skills that give any AI engine **persistent memory across sessions** using only the local filesystem. No external services, no databases, no pip installs — just Python 3.8+ and markdown files.
+
+### The Four Memory Skills
+
+| Skill | Role | When to Invoke |
+|-------|------|----------------|
+| `memory` | Core store — schema, scripts, direct read/write/search | Direct memory operations |
+| `memory-recall` | Loads relevant context before work begins | **Start of every session** |
+| `memory-write` | Extracts and persists session learnings | **End of every session** |
+| `memory-consolidate` | Decays, deduplicates, compresses old entries | Weekly or monthly |
+
+### Memory Layers
+
+The store lives at `memory/store/` and is organized into four cognitive layers:
+
+| Layer | Directory | What Goes Here |
+|-------|-----------|----------------|
+| **Episodic** | `store/episodic/` | Session summaries, milestones, breakthrough events |
+| **Semantic** | `store/semantic/` | Project facts, tech notes, user preferences, domain knowledge |
+| **Procedural** | `store/procedural/` | ADRs, repeatable workflows, code conventions |
+| **Working** | `store/working/active.md` | Hot context handoff — current task, next steps, open questions |
+
+### Standard Session Workflow
+
+```bash
+┌─────────────────────────────────────────────────────────────┐
+│  SESSION START                                              │
+│  /memory-recall   ← loads working memory + relevant context │
+│                                                             │
+│  [... do your work ...]                                     │
+│                                                             │
+│  SESSION END                                                │
+│  /memory-write    ← captures decisions, facts, next steps   │
+└─────────────────────────────────────────────────────────────┘
+
+Weekly / Monthly:
+  /memory-consolidate  ← decays stale entries, deduplicates, compresses
+```
+
+#### What `memory-recall` loads
+
+1. `store/working/active.md` — always first; the hot state from last session
+2. Semantic memories relevant to the current project and technology keywords
+3. Architecture Decision Records (ADRs) for the active project
+4. Code conventions and workflows for the active project
+5. The 3 most recent episodic session summaries
+
+#### What `memory-write` saves
+
+- **Episodic** — a session summary (goal, outcome, decisions, blockers, next steps)
+- **Semantic** — project facts, tech gotchas, confirmed library behaviors, user preferences
+- **Procedural** — ADRs with full Context / Decision / Rationale / Trade-offs / Status format
+- **Working** — updated `active.md` with the next-session handoff state
+
+#### Duplicate prevention
+
+Before writing, `memory-write` searches the store and scores similarity:
+
+| Score | Action |
+|-------|--------|
+| > 0.80 | Update the existing entry |
+| 0.40 – 0.80 | Create new entry with a `related:` note |
+| < 0.40 | Create a fresh entry |
+
+### Memory Store Privacy
+
+All store data lives only on your local machine. The `memory/.gitignore` file excludes every `store/` path from version control — only the skill instructions and Python scripts are committed to git.
+
+To sync across machines, use a private git repo just for `memory/store/`, rsync in your backup system, or a dotfiles manager.
+
+### Memory Store Maintenance
+
+```bash
+# Preview what consolidation would change (no writes)
+python memory/scripts/consolidate.py --dry-run
+
+# Full maintenance pass (decay + dedup + compress + reindex)
+python memory/scripts/consolidate.py
+
+# Manual search
+python memory/scripts/search_memory.py --query "axum middleware" --type semantic
+python memory/scripts/search_memory.py --stats
+
+# Manual write
+python memory/scripts/write_memory.py \
+  --type semantic --category technologies \
+  --title "Axum Tower Middleware Pattern" \
+  --content "When adding middleware in Axum 0.8+..." \
+  --tags "rust,axum,middleware" --project opensite-api
+```
 
 ---
 
@@ -67,7 +162,6 @@ CLAUDE_SESSION_COOKIE="<value>"
 **Cookie to grab:** Open Brave → `perplexity.ai` → log in → `F12` → **Application** → **Cookies** → `https://www.perplexity.ai` → find `__Secure-next-auth.session-token`, copy its Value.
 
 **URL used by the script:** `https://www.perplexity.ai/account/org/skills`
-(the org settings page has a direct "Upload skill" button — no dropdown required)
 
 ```bash
 ./sync-perplexity.sh                   # sync all skills
@@ -76,6 +170,7 @@ CLAUDE_SESSION_COOKIE="<value>"
 ```
 
 **What it does per skill:**
+
 1. Navigates to the org skills page
 2. Searches the skill list for the skill name
 3. **Exists** → opens the skill's `⋮` menu → clicks the update option → re-uploads the zip
@@ -189,6 +284,17 @@ git push
 
 ## Skills Inventory
 
+### Memory System
+
+> **Four skills that work as a unit.** Install all four. Use `memory-recall` to start every session and `memory-write` to end it. Run `memory-consolidate` weekly.
+
+| Skill | Role | Invoke When |
+|-------|------|-------------|
+| `memory` | Core store — schema, scripts, direct operations | Direct memory reads/writes/searches |
+| `memory-recall` | Loads all relevant context before work begins | Start of session / "do you remember…" |
+| `memory-write` | Extracts and persists session learnings | End of session / "save this" / "remember this" |
+| `memory-consolidate` | Decays confidence, deduplicates, compresses old sessions | Weekly / monthly / after bulk writes |
+
 ### Octane — Rust + Axum
 
 | Skill | Description |
@@ -203,6 +309,7 @@ git push
 | Skill | Description |
 | ------- | ------------- |
 | `ai-research-workflow` | Multi-step research orchestration with Opus 4.6 |
+| `ai-retrieval-patterns` | RAG patterns, hybrid search, reranking |
 
 ### UI / Frontend
 
@@ -212,12 +319,26 @@ git push
 | `tailwind4-shadcn` | Tailwind v4 + ShadCN (new-york style) |
 | `page-speed-library` | `@page-speed/*` library development |
 | `semantic-ui-builder` | AI-powered site builder patterns |
+| `client-side-routing-patterns` | SPA routing, layout, transitions |
+| `react-rendering-performance` | React 19 rendering, Suspense, concurrent patterns |
 
 ### Rails / Backend
 
 | Skill | Description |
 | ------- | ------------- |
-| `rails-api-patterns` | `toastability-service` + `dashtrack-ai` conventions |
+| `rails-api-patterns` | Rails API design, service layer, and background job conventions |
+| `rails-query-optimization` | N+1 elimination, eager loading, query analysis |
+| `rails-zero-downtime-migrations` | Safe schema changes without downtime |
+| `sidekiq-job-patterns` | Background jobs, retries, concurrency |
+
+### Database / Performance
+
+| Skill | Description |
+| ------- | ------------- |
+| `pgvector-optimization` | pgvector indexing, HNSW, distance functions |
+| `postgres-performance-engineering` | Query planning, indexing, EXPLAIN ANALYZE |
+| `rust-async-patterns` | Tokio tasks, channels, concurrency patterns |
+| `rust-error-handling` | `thiserror`, `AppError`, error propagation patterns |
 
 ### DevOps / Operations
 
@@ -227,6 +348,7 @@ git push
 | `deploy-fly-io` | Fly.io + Tigris deployment (manual-invoke only) |
 | `sentry-monitoring` | Error tracking across all services |
 | `git-workflow` | Branch, commit, PR conventions (manual-invoke only) |
+| `automation-builder` | Workflow automation, scripting patterns |
 
 ### Quality / Security
 
@@ -276,9 +398,9 @@ python3 scripts/validate_skills.py
 2. **Typed State in Axum** — `State<Arc<HandlerState>>`, never `Extension<Pool>`
 3. **CSS Variables** — `bg-background`, `text-foreground`, never `bg-white`
 4. **SOC2 Audit Trail** — Every LLM call wrapped in `AuditedLlmProvider`
-5. **Schema Migrations** — Only in `toastability-service`, synced to all apps
-6. **Fly.io Private Network** — `{app}.internal:{port}` addresses throughout
-7. **Tigris S3** — `https://fly.storage.tigris.dev` endpoint
+5. **Schema Ownership** — Nominate a single service to own migrations; all others sync from it
+6. **Fly.io Private Network** — `{app}.internal:{port}` addresses for service-to-service calls
+7. **Tigris S3** — `https://fly.storage.tigris.dev` endpoint for object storage
 
 ---
 
@@ -286,6 +408,24 @@ python3 scripts/validate_skills.py
 
 ```
 opensite-skills/
+├── memory/                      ← Core memory store + scripts
+│   ├── SKILL.md
+│   ├── scripts/
+│   │   ├── write_memory.py
+│   │   ├── search_memory.py
+│   │   ├── list_memories.py
+│   │   └── consolidate.py
+│   └── store/                   ← gitignored — local only
+│       ├── episodic/
+│       ├── semantic/
+│       ├── procedural/
+│       └── working/
+├── memory-recall/               ← Context retrieval agent
+│   └── SKILL.md
+├── memory-write/                ← Session capture agent
+│   └── SKILL.md
+├── memory-consolidate/          ← Maintenance agent
+│   └── SKILL.md
 ├── <skill-name>/
 │   ├── SKILL.md                 ← Main skill instructions + frontmatter
 │   ├── agents/openai.yaml       ← Codex/OpenAI UI metadata
@@ -293,6 +433,7 @@ opensite-skills/
 │   ├── templates/               ← Optional task/output templates
 │   ├── examples/                ← Optional sample outputs or briefs
 │   └── scripts/                 ← Optional helper or validation scripts
+├── AGENTS.md             ← Root context (Codex, Cursor, Copilot, Windsurf, Cline)
 ├── CLAUDE.md             ← Root context (Claude Code only)
 ├── README.md
 ├── scripts/refresh_skill_support.py

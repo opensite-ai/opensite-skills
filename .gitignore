@@ -1,6 +1,7 @@
 .env
 *.zip
 .DS_Store
+AGENTS.md
 .playwright/
 .skill-zips-tmp/
 
@@ -13,3 +14,10 @@ octane-soc2-hipaa*
 rails-api-patterns*
 sentry-monitoring*
 gpu-workers-python*
+
+# Memory store — local only, never commit
+memory/store/episodic/
+memory/store/semantic/
+memory/store/procedural/
+memory/store/working/active.md
+memory/meta/index.json
