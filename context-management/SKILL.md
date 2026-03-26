@@ -222,6 +222,10 @@ python scripts/ctx_checkpoint.py load \
 # List all checkpoints
 python scripts/ctx_checkpoint.py list \
   --project /path/to/project
+
+# Save raw markdown (for agents that generate their own format)
+python scripts/ctx_checkpoint.py save-raw \
+  --project /path/to/project < custom_checkpoint.md
 ```
 
 **What it does:**
@@ -230,6 +234,7 @@ python scripts/ctx_checkpoint.py list \
 - On load, returns the checkpoint content for context injection
 - Designed to be called before compaction and after resuming
 - Auto-captures git branch and last commit for additional context
+- `save-raw` subcommand allows saving arbitrary markdown content
 
 ---
 
@@ -307,6 +312,8 @@ When this skill is active, follow these routing rules:
 - Reading files larger than 200 lines
 - Running linters with many warnings/errors
 
+> **Note**: For files larger than ~50MB, consider pre-filtering with standard Unix tools (`head`, `grep`, `awk`) before piping to `ctx_compress.py` to avoid high memory usage.
+
 ### ALWAYS checkpoint when:
 - You've completed a significant milestone
 - Before the session feels long (proactively, every ~15 tool calls)
@@ -382,8 +389,9 @@ against the same repo), you can:
    cargo test 2>&1 | python scripts/ctx_compress.py --index --source "test:cargo" --project .
    ```
 
-The session ID is prepended to source identifiers internally and does not affect
-search behavior (all sessions' content is searchable together).
+The session ID is prepended to source identifiers internally. **Note**: When using
+`CTX_SESSION_ID`, include the session prefix in source prefix filters:
+`--source "agent-1:file:src/"` instead of `--source "file:src/"`.
 
 ---
 

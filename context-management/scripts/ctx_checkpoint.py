@@ -86,7 +86,7 @@ def save_checkpoint(
 
     # Archive existing checkpoint if present
     if checkpoint_path.exists():
-        timestamp = datetime.now().strftime("%Y-%m-%d-%H%M%S")
+        timestamp = datetime.now().strftime("%Y-%m-%d-%H%M%S-%f")
         archive_path = archive_dir / f"{timestamp}.md"
         shutil.copy2(str(checkpoint_path), str(archive_path))
 
@@ -152,7 +152,7 @@ def save_raw_checkpoint(project_dir: str, content: str) -> Path:
 
     # Archive existing
     if checkpoint_path.exists():
-        timestamp = datetime.now().strftime("%Y-%m-%d-%H%M%S")
+        timestamp = datetime.now().strftime("%Y-%m-%d-%H%M%S-%f")
         archive_path = archive_dir / f"{timestamp}.md"
         shutil.copy2(str(checkpoint_path), str(archive_path))
 

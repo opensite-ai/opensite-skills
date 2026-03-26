@@ -124,6 +124,19 @@ else
     exit 1
 fi
 
+# Test 6b: Verify BM25 ranking is active
+echo "Test 6b: Verifying BM25 ranking is active..."
+RESULT=$(python "$SCRIPT_DIR/ctx_search.py" \
+    --query "error" \
+    --project .)
+if echo "$RESULT" | grep -qE "^\[(-?[0-9]+\.[0-9]+)\]"; then
+    echo "  ✓ PASS: ctx_search.py (BM25 rank active)"
+else
+    echo "  ✗ FAIL: ctx_search.py (BM25 rank not active - FTS5 may be unavailable)"
+    echo "  Output: $RESULT"
+    exit 1
+fi
+
 # Test 7: ctx_compress.py basic
 echo "Test 7: Compressing content..."
 RESULT=$(echo "$TEST_CONTENT" | python "$SCRIPT_DIR/ctx_compress.py" --lines 10)

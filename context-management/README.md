@@ -21,6 +21,8 @@ workflow: the agent invokes these tools explicitly instead of hooks doing it imp
 
 ## Quick Start
 
+> **Note**: Run commands from the `context-management/` directory, or use the full path to `scripts/` (e.g., `python /path/to/context-management/scripts/ctx_compress.py`).
+
 ```bash
 # Index a large test output
 cargo test 2>&1 | python scripts/ctx_compress.py \
@@ -47,6 +49,13 @@ repository. Install via symlink:
 ```bash
 cd /path/to/opensite-skills
 ./setup.sh  # Creates symlinks for Claude Code, Codex, Cursor
+```
+
+To run the smoke test:
+
+```bash
+chmod +x scripts/test_ctx.sh
+./scripts/test_ctx.sh
 ```
 
 Or copy the `context-management/` directory to your agent's skills directory.

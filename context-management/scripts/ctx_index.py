@@ -188,6 +188,10 @@ def chunk_content(text: str, max_chunk_lines: int = 80) -> list:
         if in_fence:
             fence_regions.add(i)
 
+    # Auto-close unclosed fence at EOF
+    if in_fence:
+        fence_regions.discard(len(lines) - 1)  # treat as closed at EOF
+
     # Second pass: split on headings (not inside fences)
     sections = []
     current = []
