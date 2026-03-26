@@ -131,8 +131,11 @@ RESULT=$(python "$SCRIPT_DIR/ctx_search.py" \
     --project .)
 if echo "$RESULT" | grep -qE "^\[(-?[0-9]+\.[0-9]+)\]"; then
     echo "  ✓ PASS: ctx_search.py (BM25 rank active)"
+elif echo "$RESULT" | grep -q "\[n/a\]"; then
+    echo "  ⚠ WARN: BM25 unavailable (FTS4 fallback — SQLite < 3.9.0)"
+    echo "    Search works; results in insertion order, not relevance ranked."
 else
-    echo "  ✗ FAIL: ctx_search.py (BM25 rank not active - FTS5 may be unavailable)"
+    echo "  ✗ FAIL: ctx_search.py (unexpected rank format)"
     echo "  Output: $RESULT"
     exit 1
 fi

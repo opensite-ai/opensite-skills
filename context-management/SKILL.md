@@ -25,7 +25,7 @@ metadata:
 
 ## Skill Resources
 - Activation and cross-agent notes: [references/activation.md](references/activation.md)
-- Scripts: `scripts/ctx_index.py`, `scripts/ctx_search.py`, `scripts/ctx_compress.py`, `scripts/ctx_checkpoint.py`
+- Scripts: `scripts/ctx_index.py`, `scripts/ctx_search.py`, `scripts/ctx_compress.py`, `scripts/ctx_checkpoint.py`, `scripts/ctx_stats.py`
 
 ## Task Focus for $ARGUMENTS
 When this skill is invoked explicitly, treat `$ARGUMENTS` as the primary scope:

@@ -62,11 +62,11 @@ Or copy the `context-management/` directory to your agent's skills directory.
 
 ## Verification
 
-Run the smoke-test script after installation:
+Run the smoke-test script after installation (no `chmod +x` needed):
 
 ```bash
 cd /path/to/context-management
-./scripts/test_ctx.sh
+bash scripts/test_ctx.sh
 ```
 
 This validates that all scripts work correctly on your platform.
