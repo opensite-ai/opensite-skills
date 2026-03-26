@@ -1,7 +1,26 @@
+version: 1.1.0
+
 interface:
   display_name: "Context Management"
   short_description: "Extend effective context window across all AI coding agents"
+  long_description: "Context virtualization skill providing SQLite FTS5 indexing of large tool outputs, BM25 search for targeted snippet retrieval, deterministic output compression, and session checkpointing that survives context compaction. Essential for Codex CLI and other agents that lack hook-based automatic output interception."
   default_prompt: "Use $context-management when working in long sessions, when tool outputs are large (logs, diffs, snapshots), or when resuming after compaction. Provides SQLite FTS5 indexing, BM25 search, deterministic compression, and session checkpointing."
+  category: infrastructure
+  tags:
+    - context-management
+    - fts5
+    - bm25
+    - compression
+    - checkpointing
+    - codex-cli
+    - context-window
 
 policy:
   allow_implicit_invocation: true
+  invocation_triggers:
+    - "context window running low"
+    - "large output compression"
+    - "compaction survival"
+    - "checkpoint session state"
+    - "index large file"
+    - "search indexed content"

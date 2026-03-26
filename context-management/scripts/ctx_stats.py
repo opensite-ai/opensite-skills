@@ -192,7 +192,10 @@ def main():
     parser.add_argument("--project", default=".", help="Project directory")
     parser.add_argument("--brief", action="store_true", help="One-line summary")
     parser.add_argument(
-        "--session", action="store_true", help="Current session only (last 4 hours)"
+        "--session", action="store_true", help="Current session only (configurable via --session-hours)"
+    )
+    parser.add_argument(
+        "--session-hours", type=int, default=4, help="Session window in hours (default: 4)"
     )
     parser.add_argument(
         "--reset", action="store_true", help="Clear the compression log"
@@ -213,7 +216,7 @@ def main():
         elif args.brief:
             print_brief(conn)
         elif args.session:
-            since = (datetime.now() - timedelta(hours=4)).isoformat()
+            since = (datetime.now() - timedelta(hours=args.session_hours)).isoformat()
             print_full_stats(conn, since=since)
         else:
             print_full_stats(conn)

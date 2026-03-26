@@ -28,12 +28,41 @@ No external dependencies. Python 3.8+.
 """
 
 import argparse
+import json
 import shutil
+import subprocess
 import sys
 from datetime import datetime
 from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).resolve().parent
+
+
+def get_git_context() -> str:
+    """Auto-capture git branch and last commit if available."""
+    try:
+        branch = subprocess.run(
+            ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+            capture_output=True,
+            text=True,
+            timeout=2
+        ).stdout.strip()
+
+        commit = subprocess.run(
+            ["git", "log", "--oneline", "-1"],
+            capture_output=True,
+            text=True,
+            timeout=2
+        ).stdout.strip()
+
+        if branch and commit:
+            return f"Git: {branch} | {commit}"
+        elif branch:
+            return f"Git: {branch}"
+        else:
+            return ""
+    except Exception:
+        return ""
 
 
 def get_ctx_dir(project_dir: str) -> Path:
@@ -68,12 +97,23 @@ def save_checkpoint(
     date_str = now.strftime("%Y-%m-%d")
     time_str = now.strftime("%H:%M:%S")
 
-    def format_items(text: str) -> str:
-        """Convert comma-separated items into a bulleted list."""
+    def format_list(text: str) -> str:
+        """Convert comma-separated items into a bulleted list (for list fields)."""
         if not text.strip():
             return "- (none)\n"
         items = [item.strip() for item in text.split(",") if item.strip()]
         return "\n".join(f"- {item}" for item in items) + "\n"
+
+    def format_text(text: str) -> str:
+        """Format a text field verbatim (no comma splitting)."""
+        return text if text.strip() else "(none)"
+
+    # Auto-capture git context if not already provided
+    git_context = get_git_context()
+    if git_context and context:
+        context = f"{git_context}\n{context}"
+    elif git_context:
+        context = git_context
 
     content = f"""---
 type: checkpoint
@@ -84,18 +124,18 @@ time: {time_str}
 # Session Checkpoint
 
 ## Current Task
-{task or "(not specified)"}
+{format_text(task)}
 
 ## Completed
-{format_items(completed)}
+{format_list(completed)}
 ## In Progress
-{format_items(in_progress)}
+{format_list(in_progress)}
 ## Next Steps
-{format_items(next_steps)}
+{format_list(next_steps)}
 ## Key Decisions
-{format_items(decisions)}
+{format_text(decisions)}
 ## Context / Notes
-{context or "(none)"}
+{format_text(context)}
 
 ---
 _Saved: {date_str} {time_str}_
@@ -124,15 +164,64 @@ def save_raw_checkpoint(project_dir: str, content: str) -> Path:
     return checkpoint_path
 
 
-def load_checkpoint(project_dir: str) -> str:
+def load_checkpoint(project_dir: str, as_json: bool = False) -> str:
     """Load and return the latest checkpoint content."""
     ctx_dir = get_ctx_dir(project_dir)
     checkpoint_path = ctx_dir / "checkpoint.md"
 
     if not checkpoint_path.exists():
-        return "(no checkpoint found)"
+        return json.dumps({"error": "no checkpoint found"}) if as_json else "(no checkpoint found)"
 
-    return checkpoint_path.read_text(encoding="utf-8")
+    content = checkpoint_path.read_text(encoding="utf-8")
+
+    if as_json:
+        # Parse the markdown into structured JSON
+        lines = content.splitlines()
+        data = {
+            "raw": content,
+            "task": "",
+            "completed": [],
+            "in_progress": [],
+            "next_steps": [],
+            "decisions": "",
+            "context": "",
+            "timestamp": "",
+        }
+
+        current_section = None
+        for line in lines:
+            line = line.strip()
+            if line.startswith("## "):
+                section_name = line[3:].lower().replace("/", "").strip()
+                if "task" in section_name:
+                    current_section = "task"
+                elif "completed" in section_name:
+                    current_section = "completed"
+                elif "in progress" in section_name:
+                    current_section = "in_progress"
+                elif "next step" in section_name:
+                    current_section = "next_steps"
+                elif "decision" in section_name:
+                    current_section = "decisions"
+                elif "context" in section_name or "note" in section_name:
+                    current_section = "context"
+            elif line.startswith("- ") and current_section in ["completed", "in_progress", "next_steps"]:
+                data[current_section].append(line[2:])
+            elif line.startswith("_Saved:"):
+                data["timestamp"] = line.replace("_Saved:", "").replace("_", "").strip()
+            elif line and not line.startswith("---") and current_section:
+                if current_section in ["task", "decisions", "context"]:
+                    if data[current_section]:
+                        data[current_section] += "\n" + line
+                    else:
+                        data[current_section] = line
+                elif current_section in ["completed", "in_progress", "next_steps"]:
+                    # Non-bullet line in a list section - skip or append to last item
+                    pass
+
+        return json.dumps(data, indent=2)
+
+    return content
 
 
 def list_checkpoints(project_dir: str) -> list:
@@ -180,6 +269,7 @@ def main():
     # Load command
     load_parser = subparsers.add_parser("load", help="Load the latest checkpoint")
     load_parser.add_argument("--project", default=".", help="Project directory")
+    load_parser.add_argument("--json", action="store_true", help="Output as structured JSON")
 
     # List command
     list_parser = subparsers.add_parser("list", help="List all archived checkpoints")
@@ -206,7 +296,7 @@ def main():
         save_raw_checkpoint(args.project, content)
 
     elif args.command == "load":
-        content = load_checkpoint(args.project)
+        content = load_checkpoint(args.project, as_json=args.json)
         print(content)
 
     elif args.command == "list":

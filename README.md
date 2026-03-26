@@ -4,7 +4,7 @@
 
 ![Multi Agent Support AI Skills Library](https://octane.cdn.ing/api/v1/images/transform?url=https://cdn.ing/assets/i/r/297562/3b1o40e6650ce6yxbgdcrr83c35e/og.jpg&f=webp)
 
-A growing collection of skills spanning frontend design, Rust and Rails backend engineering, AI/RAG pipeline patterns, database performance, DevOps automation, and more — built to stay in sync across every AI coding agent you run. Because keeping Claude Code, Codex, Copilot, Cursor, and cloud platforms all individually up to date sounds like a special kind of hell, this repo ships a full set of scripts that maintain a single source of truth for all of them.
+A growing collection of skills spanning frontend design, Rust and Rails backend engineering, AI/RAG pipeline patterns, database performance, DevOps automation, and more — built to stay in sync across every AI coding agent you run. Because keeping Claude Code, Codex, Copilot, Cursor, Factory/Droid, and cloud platforms all individually up to date sounds like a special kind of hell, this repo ships a full set of scripts that maintain a single source of truth for all of them.
 
 These skills follow the [Agent Skills open standard](https://agentskills.io) and are compatible with:
 
@@ -13,6 +13,7 @@ These skills follow the [Agent Skills open standard](https://agentskills.io) and
 | **Claude Code** | `~/.claude/skills/` (global) or `.claude/skills/` (project) | Automatic + `/skill-name` |
 | **Claude Desktop** | Cloud upload — `claude.ai/customize/skills` | Automatic trigger |
 | **Codex** | `~/.codex/skills/` (global) or `.agents/skills/` (repo) | Automatic + `$skill-name` |
+| **Factory/Droid** | `~/.factory/skills/` (global) | Via `/` commands |
 | **GitHub Copilot** | `~/.copilot/skills/` (global) | Via `/` commands |
 | **Perplexity Computer** | Cloud upload — `perplexity.ai/account/org/skills` | Automatic trigger |
 | **Cursor** | `.cursor/skills/` per-repo | Via `/` commands |
@@ -23,7 +24,7 @@ These skills follow the [Agent Skills open standard](https://agentskills.io) and
 
 ## Quick Setup
 
-> For local platforms: Claude Code, Codex, Cursor, and GitHub Copilot. Dedicated scripts for cloud platforms (Perplexity, Claude Desktop) below.
+> For local platforms: Claude Code, Codex, Cursor, Factory/Droid, and GitHub Copilot. Dedicated scripts for cloud platforms (Perplexity, Claude Desktop) below.
 
 ```bash
 # 1. Clone to a stable location
@@ -678,7 +679,7 @@ opensite-skills/
 ├── README.md
 ├── scripts/refresh_skill_support.py
 ├── scripts/validate_skills.py
-├── setup.sh               ← Symlink installer (Claude Code, Codex, Copilot, Cursor)
+├── setup.sh               ← Symlink installer (Claude Code, Codex, Copilot, Cursor, Factory/Droid)
 ├── sync-perplexity.sh     ← Perplexity Computer cloud sync
 ├── sync-claude.sh         ← Claude Desktop cloud sync
 └── .env                   ← Session cookies (gitignored)

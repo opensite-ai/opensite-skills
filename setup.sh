@@ -93,6 +93,20 @@ else
 fi
 echo ""
 
+# ── Factory/Droid ────────────────────────────────────────────────────────────
+FACTORY_SKILLS="$HOME/.factory/skills"
+if command -v droid &>/dev/null || [ -d "$HOME/.factory" ]; then
+  echo "── Factory/Droid ─────────────────────────────────────────────"
+  mkdir -p "$FACTORY_SKILLS"
+  for skill in "$SKILLS_DIR"/*/; do
+    link_skill "$skill" "$FACTORY_SKILLS"
+  done
+  PLATFORMS+=("Factory/Droid")
+else
+  echo "── Factory/Droid — SKIPPED (not installed)"
+fi
+echo ""
+
 # ── Repo-level (optional) ────────────────────────────────────────────────────
 if [ "${LINK_REPO:-0}" = "1" ]; then
   echo "── Repo-level (.agents/skills) ───────────────────────────────"
@@ -110,7 +124,7 @@ echo "════════════════════════�
 if [ ${#PLATFORMS[@]} -gt 0 ]; then
   echo "  Linked $SKILL_COUNT skills across: ${PLATFORMS[*]}"
 else
-  echo "  No platforms detected. Install Claude Code, Codex, Copilot (gh), or Cursor first."
+  echo "  No platforms detected. Install Claude Code, Codex, Copilot (gh), Cursor, or Factory/Droid first."
   echo "  Then re-run this script."
 fi
 echo ""

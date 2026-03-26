@@ -82,9 +82,13 @@ All data is stored under `.ctx/` in the project root (gitignore this directory):
 
 ## Core Scripts
 
-All scripts live in `{baseDir}/scripts/` relative to this SKILL.md. They use
+All scripts live in `scripts/` relative to this SKILL.md. They use
 `Path(__file__).resolve()` for portable path resolution. All are Python 3.8+
 with zero external dependencies.
+
+> **Path Resolution**: The scripts can be invoked with relative paths (`scripts/ctx_index.py`)
+> when run from the skill's installation directory, or with absolute paths when run from
+> elsewhere. The `scripts/` directory is in the same location as this SKILL.md file.
 
 ### 1. ctx_index.py — Index Content into FTS5
 
@@ -92,24 +96,24 @@ Index large outputs so they stay out of context but remain searchable.
 
 ```bash
 # Index from stdin (pipe a command's output)
-cat large_file.rs | python {baseDir}/scripts/ctx_index.py \
+cat large_file.rs | python scripts/ctx_index.py \
   --source "file:src/handlers/mod.rs" \
   --project /path/to/project
 
 # Index from a file
-python {baseDir}/scripts/ctx_index.py \
+python scripts/ctx_index.py \
   --source "git:diff-main" \
   --file /tmp/git_diff_output.txt \
   --project /path/to/project
 
 # Index inline content
-python {baseDir}/scripts/ctx_index.py \
+python scripts/ctx_index.py \
   --source "test:cargo-test" \
   --content "$(cargo test 2>&1)" \
   --project /path/to/project
 
 # Index with tags for filtering
-python {baseDir}/scripts/ctx_index.py \
+python scripts/ctx_index.py \
   --source "log:fly-deploy" \
   --tags "deploy,fly,production" \
   --project /path/to/project < deploy.log
@@ -127,30 +131,30 @@ Retrieve targeted snippets instead of re-reading entire files.
 
 ```bash
 # Basic keyword search
-python {baseDir}/scripts/ctx_search.py \
+python scripts/ctx_search.py \
   --query "error handling AppError" \
   --project /path/to/project
 
 # Search with source filter
-python {baseDir}/scripts/ctx_search.py \
+python scripts/ctx_search.py \
   --query "middleware tower" \
   --source "file:src/" \
   --project /path/to/project
 
 # Search with tag filter and limit
-python {baseDir}/scripts/ctx_search.py \
+python scripts/ctx_search.py \
   --query "deploy timeout" \
   --tags "production" \
   --limit 5 \
   --project /path/to/project
 
 # List all indexed sources
-python {baseDir}/scripts/ctx_search.py \
+python scripts/ctx_search.py \
   --list-sources \
   --project /path/to/project
 
 # Show DB stats
-python {baseDir}/scripts/ctx_search.py \
+python scripts/ctx_search.py \
   --stats \
   --project /path/to/project
 ```
@@ -167,20 +171,20 @@ Reduce large outputs to a fixed line budget before they enter context.
 
 ```bash
 # Compress stdin to 50 lines (default)
-cat huge_log.txt | python {baseDir}/scripts/ctx_compress.py
+cat huge_log.txt | python scripts/ctx_compress.py
 
 # Compress to specific line budget
-git diff HEAD~5 | python {baseDir}/scripts/ctx_compress.py --lines 30
+git diff HEAD~5 | python scripts/ctx_compress.py --lines 30
 
 # Compress and index simultaneously (recommended workflow)
-cargo test 2>&1 | python {baseDir}/scripts/ctx_compress.py \
+cargo test 2>&1 | python scripts/ctx_compress.py \
   --lines 40 \
   --index \
   --source "test:cargo-test" \
   --project /path/to/project
 
 # Compress a file
-python {baseDir}/scripts/ctx_compress.py \
+python scripts/ctx_compress.py \
   --file /tmp/large_output.txt \
   --lines 60
 ```
@@ -188,7 +192,7 @@ python {baseDir}/scripts/ctx_compress.py \
 **What it does:**
 - Reads full input, extracts a deterministic summary within the line budget
 - Prioritizes: errors/warnings first, then structure (headings/signatures), then content
-- Appends a `[compressed: N/M lines, full content indexed as {source}]` footer
+- Appends a `[compressed: N/M lines (~X → ~Y tokens), full content indexed as {source}]` footer
 - With `--index`, also stores the full uncompressed content in FTS5
 
 ### 4. ctx_checkpoint.py — Session State Persistence
@@ -197,7 +201,7 @@ Save and restore session state across Codex compaction boundaries.
 
 ```bash
 # Save a checkpoint
-python {baseDir}/scripts/ctx_checkpoint.py save \
+python scripts/ctx_checkpoint.py save \
   --project /path/to/project \
   --task "Implementing OAuth2 flow for customer-sites" \
   --completed "Added OAuth routes, Created token model" \
@@ -207,11 +211,16 @@ python {baseDir}/scripts/ctx_checkpoint.py save \
   --context "Branch: feature/oauth2, Tests passing except refresh"
 
 # Load the latest checkpoint
-python {baseDir}/scripts/ctx_checkpoint.py load \
+python scripts/ctx_checkpoint.py load \
   --project /path/to/project
 
+# Load checkpoint as JSON (for programmatic use)
+python scripts/ctx_checkpoint.py load \
+  --project /path/to/project \
+  --json
+
 # List all checkpoints
-python {baseDir}/scripts/ctx_checkpoint.py list \
+python scripts/ctx_checkpoint.py list \
   --project /path/to/project
 ```
 
@@ -220,6 +229,7 @@ python {baseDir}/scripts/ctx_checkpoint.py list \
 - Archives previous checkpoints with timestamps
 - On load, returns the checkpoint content for context injection
 - Designed to be called before compaction and after resuming
+- Auto-captures git branch and last commit for additional context
 
 ---
 
@@ -232,11 +242,11 @@ When a command will produce large output, route it through compress+index:
 ```bash
 # Instead of raw: cargo test 2>&1
 # Do this:
-cargo test 2>&1 | python {baseDir}/scripts/ctx_compress.py \
+cargo test 2>&1 | python scripts/ctx_compress.py \
   --lines 40 --index --source "test:cargo-test" --project .
 
 # Later, find specific test failures:
-python {baseDir}/scripts/ctx_search.py \
+python scripts/ctx_search.py \
   --query "FAILED assertion" --project .
 ```
 
@@ -246,12 +256,12 @@ When reading large files, index them and work from search:
 
 ```bash
 # Index a large file
-python {baseDir}/scripts/ctx_index.py \
+python scripts/ctx_index.py \
   --source "file:src/handlers/mod.rs" \
   --file src/handlers/mod.rs --project .
 
 # Search for specific content
-python {baseDir}/scripts/ctx_search.py \
+python scripts/ctx_search.py \
   --query "fn handle_request" --project .
 ```
 
@@ -261,7 +271,7 @@ Before context compaction, checkpoint your state:
 
 ```bash
 # Save state
-python {baseDir}/scripts/ctx_checkpoint.py save \
+python scripts/ctx_checkpoint.py save \
   --project . \
   --task "Current task description" \
   --completed "Done items" \
@@ -269,7 +279,7 @@ python {baseDir}/scripts/ctx_checkpoint.py save \
   --next-steps "What to do next"
 
 # After compaction, reload
-python {baseDir}/scripts/ctx_checkpoint.py load --project .
+python scripts/ctx_checkpoint.py load --project .
 ```
 
 ### Workflow D: Session Start (combine with memory-recall)
@@ -278,10 +288,10 @@ At session start, load both memory context and any existing checkpoints:
 
 ```bash
 # Load checkpoint if exists
-python {baseDir}/scripts/ctx_checkpoint.py load --project .
+python scripts/ctx_checkpoint.py load --project .
 
 # Check what's been indexed
-python {baseDir}/scripts/ctx_search.py --stats --project .
+python scripts/ctx_search.py --stats --project .
 ```
 
 ---
@@ -327,9 +337,83 @@ This skill complements (does not replace) the memory skills:
 
 ## .gitignore Entry
 
-Add this to your project's `.gitignore`:
+The skill automatically adds `.ctx/` to your project's `.gitignore` on first run.
+If you need to add it manually:
 
 ```
 # Context management data (session-local, not committed)
 .ctx/
+```
+
+---
+
+## Platform Compatibility Notes
+
+### FTS5 vs FTS4 (BM25 Ranking)
+
+This skill uses SQLite FTS5 for full-text search with BM25 relevance ranking.
+On most platforms (macOS, Windows, standard Linux distributions), FTS5 is
+available by default in Python's bundled sqlite3 module.
+
+**If FTS5 is unavailable** (some Alpine-based Docker images, older Linux distros),
+the skill automatically falls back to FTS4. In FTS4 mode:
+
+- Search still works, but results are returned in insertion order (no BM25 ranking)
+- The `rank` field in search results will show `n/a`
+- All other features (indexing, compression, checkpointing) work normally
+
+To check if you have FTS5, run:
+```bash
+python -c "import sqlite3; print('FTS5 available' if sqlite3.sqlite_version_info >= (3, 9, 0) else 'FTS4 fallback')"
+```
+
+### Session Isolation (Concurrent Agents)
+
+All agents working in the same project directory share the same `.ctx/context.db`.
+SQLite WAL mode handles concurrent reads/writes safely for most use cases.
+
+If you need complete isolation (e.g., two agents running parallel Codex tasks
+against the same repo), you can:
+
+1. Use separate project directories (copy the repo)
+2. Set the `CTX_SESSION_ID` environment variable to namespace chunks per session:
+   ```bash
+   export CTX_SESSION_ID=agent-1
+   cargo test 2>&1 | python scripts/ctx_compress.py --index --source "test:cargo" --project .
+   ```
+
+The session ID is prepended to source identifiers internally and does not affect
+search behavior (all sessions' content is searchable together).
+
+---
+
+## Advanced Operations
+
+### Delete Specific Sources
+
+Remove stale index entries when files are refactored or deleted:
+
+```bash
+# Delete a specific source (exact match)
+python scripts/ctx_search.py --delete-source "file:src/handlers/mod.rs" --project .
+
+# Delete all sources matching a prefix
+python scripts/ctx_search.py --delete-source "file:src/handlers/" --prefix --project .
+```
+
+### Clear All Indexed Content
+
+Start fresh without deleting the database file:
+
+```bash
+python scripts/ctx_search.py --clear-all --project .
+```
+
+### Custom Session Window for Stats
+
+View compression stats for a custom time window:
+
+```bash
+# Stats for last 8 hours
+python scripts/ctx_stats.py --session --session-hours 8 --project .
 ```

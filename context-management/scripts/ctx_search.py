@@ -62,9 +62,9 @@ def search_fts(
 ) -> list:
     """Search the FTS5 index with BM25 ranking."""
     # Build the FTS5 MATCH query
-    # Escape special FTS5 characters
-    safe_query = query.replace('"', '""')
-    terms = safe_query.split()
+    # Strip all quotes from terms and filter out empty strings
+    terms = [t.replace('"', '').replace("'", '') for t in query.split()]
+    terms = [t for t in terms if t.strip()]
 
     if not terms:
         return []
@@ -184,6 +184,23 @@ def purge_old(conn: sqlite3.Connection, days: int) -> int:
     return cursor.rowcount
 
 
+def delete_source(conn: sqlite3.Connection, source: str, exact: bool = True) -> int:
+    """Delete entries for a specific source. Returns count deleted."""
+    if exact:
+        cursor = conn.execute("DELETE FROM chunks WHERE source = ?", (source,))
+    else:
+        cursor = conn.execute("DELETE FROM chunks WHERE source LIKE ?", (f"{source}%",))
+    conn.commit()
+    return cursor.rowcount
+
+
+def clear_all(conn: sqlite3.Connection) -> int:
+    """Delete all indexed content. Returns count deleted."""
+    cursor = conn.execute("DELETE FROM chunks")
+    conn.commit()
+    return cursor.rowcount
+
+
 def format_snippet(content: str, max_lines: int = 15) -> str:
     """Trim a content chunk for display."""
     lines = content.splitlines()
@@ -226,6 +243,21 @@ def main():
         default=None,
         help="Delete entries older than N days",
     )
+    parser.add_argument(
+        "--delete-source",
+        default=None,
+        help="Delete entries for a specific source (use --prefix for prefix match)",
+    )
+    parser.add_argument(
+        "--prefix",
+        action="store_true",
+        help="Use prefix matching with --delete-source",
+    )
+    parser.add_argument(
+        "--clear-all",
+        action="store_true",
+        help="Delete all indexed content (clear the entire database)",
+    )
 
     args = parser.parse_args()
     db_path = get_db_path(args.project)
@@ -253,6 +285,18 @@ def main():
         if args.purge_older_than is not None:
             deleted = purge_old(conn, args.purge_older_than)
             print(f"Purged {deleted} chunks older than {args.purge_older_than} days.")
+            return
+
+        if args.delete_source is not None:
+            exact = not args.prefix
+            deleted = delete_source(conn, args.delete_source, exact=exact)
+            match_type = "exact match" if exact else "prefix match"
+            print(f"Deleted {deleted} chunks for source '{args.delete_source}' ({match_type}).")
+            return
+
+        if args.clear_all:
+            deleted = clear_all(conn)
+            print(f"Cleared all indexed content: {deleted} chunks deleted.")
             return
 
         if not args.query:

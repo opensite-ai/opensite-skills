@@ -23,6 +23,7 @@ No external dependencies. Python 3.8+.
 
 import argparse
 import hashlib
+import os
 import re
 import sqlite3
 import sys
@@ -32,6 +33,19 @@ from pathlib import Path
 SCRIPT_DIR = Path(__file__).resolve().parent
 
 
+def get_session_id() -> str:
+    """Get the current session ID from environment variable (for isolation)."""
+    return os.environ.get("CTX_SESSION_ID", "")
+
+
+def qualify_source(source: str, session_id: str = None) -> str:
+    """Qualify a source identifier with session ID if present."""
+    sid = session_id if session_id is not None else get_session_id()
+    if sid:
+        return f"{sid}:{source}"
+    return source
+
+
 def get_db_path(project_dir: str) -> Path:
     """Resolve the .ctx/context.db path for the given project directory."""
     ctx_dir = Path(project_dir).resolve() / ".ctx"
@@ -39,8 +53,32 @@ def get_db_path(project_dir: str) -> Path:
     return ctx_dir / "context.db"
 
 
-def init_db(db_path: Path) -> sqlite3.Connection:
+def ensure_gitignore(project_dir: str) -> None:
+    """Ensure .ctx/ is in the project's .gitignore (first-run safety)."""
+    project_path = Path(project_dir).resolve()
+    gitignore_path = project_path / ".gitignore"
+
+    # Check if .ctx/ is already in .gitignore
+    if gitignore_path.exists():
+        content = gitignore_path.read_text(encoding="utf-8", errors="replace")
+        if ".ctx/" in content or ".ctx" in content:
+            return  # Already present
+
+    # Append .ctx/ entry to .gitignore
+    entry = "\n# Context management data (session-local, not committed)\n.ctx/\n"
+    try:
+        with gitignore_path.open("a", encoding="utf-8") as f:
+            f.write(entry)
+    except Exception:
+        pass  # Silently fail if we can't write .gitignore (permissions, etc.)
+
+
+def init_db(db_path: Path, project_dir: str = None) -> sqlite3.Connection:
     """Create the FTS5 table if it doesn't exist."""
+    # Auto-inject .gitignore on first run
+    if project_dir:
+        ensure_gitignore(project_dir)
+
     conn = sqlite3.connect(str(db_path))
     conn.execute("PRAGMA journal_mode=WAL")
     conn.execute("PRAGMA synchronous=NORMAL")
@@ -59,8 +97,16 @@ def init_db(db_path: Path) -> sqlite3.Connection:
         )
     """)
 
-    # FTS5 virtual table for full-text search with BM25
+    # Detect FTS5 availability
+    has_fts5 = False
     try:
+        conn.execute("SELECT bm25(test) FROM (SELECT 1) AS test")
+        has_fts5 = True
+    except sqlite3.OperationalError:
+        pass
+
+    # Create appropriate FTS virtual table
+    if has_fts5:
         conn.execute("""
             CREATE VIRTUAL TABLE IF NOT EXISTS chunks_fts USING fts5(
                 source,
@@ -71,8 +117,27 @@ def init_db(db_path: Path) -> sqlite3.Connection:
                 tokenize='porter unicode61'
             )
         """)
-    except sqlite3.OperationalError:
-        # FTS5 not available — fall back to FTS4
+        # FTS5 triggers use special delete syntax
+        conn.executescript("""
+            CREATE TRIGGER IF NOT EXISTS chunks_ai AFTER INSERT ON chunks BEGIN
+                INSERT INTO chunks_fts(rowid, source, content, tags)
+                VALUES (new.id, new.source, new.content, new.tags);
+            END;
+
+            CREATE TRIGGER IF NOT EXISTS chunks_ad AFTER DELETE ON chunks BEGIN
+                INSERT INTO chunks_fts(chunks_fts, rowid, source, content, tags)
+                VALUES ('delete', old.id, old.source, old.content, old.tags);
+            END;
+
+            CREATE TRIGGER IF NOT EXISTS chunks_au AFTER UPDATE ON chunks BEGIN
+                INSERT INTO chunks_fts(chunks_fts, rowid, source, content, tags)
+                VALUES ('delete', old.id, old.source, old.content, old.tags);
+                INSERT INTO chunks_fts(rowid, source, content, tags)
+                VALUES (new.id, new.source, new.content, new.tags);
+            END;
+        """)
+    else:
+        # FTS4 fallback (no BM25 ranking available)
         conn.execute("""
             CREATE VIRTUAL TABLE IF NOT EXISTS chunks_fts USING fts4(
                 source,
@@ -82,26 +147,23 @@ def init_db(db_path: Path) -> sqlite3.Connection:
                 tokenize=porter
             )
         """)
+        # FTS4 triggers use standard DELETE syntax
+        conn.executescript("""
+            CREATE TRIGGER IF NOT EXISTS chunks_ai AFTER INSERT ON chunks BEGIN
+                INSERT INTO chunks_fts(rowid, source, content, tags)
+                VALUES (new.id, new.source, new.content, new.tags);
+            END;
 
-    # Triggers to keep FTS in sync
-    conn.executescript("""
-        CREATE TRIGGER IF NOT EXISTS chunks_ai AFTER INSERT ON chunks BEGIN
-            INSERT INTO chunks_fts(rowid, source, content, tags)
-            VALUES (new.id, new.source, new.content, new.tags);
-        END;
+            CREATE TRIGGER IF NOT EXISTS chunks_ad AFTER DELETE ON chunks BEGIN
+                DELETE FROM chunks_fts WHERE rowid = old.id;
+            END;
 
-        CREATE TRIGGER IF NOT EXISTS chunks_ad AFTER DELETE ON chunks BEGIN
-            INSERT INTO chunks_fts(chunks_fts, rowid, source, content, tags)
-            VALUES ('delete', old.id, old.source, old.content, old.tags);
-        END;
-
-        CREATE TRIGGER IF NOT EXISTS chunks_au AFTER UPDATE ON chunks BEGIN
-            INSERT INTO chunks_fts(chunks_fts, rowid, source, content, tags)
-            VALUES ('delete', old.id, old.source, old.content, old.tags);
-            INSERT INTO chunks_fts(rowid, source, content, tags)
-            VALUES (new.id, new.source, new.content, new.tags);
-        END;
-    """)
+            CREATE TRIGGER IF NOT EXISTS chunks_au AFTER UPDATE ON chunks BEGIN
+                DELETE FROM chunks_fts WHERE rowid = old.id;
+                INSERT INTO chunks_fts(rowid, source, content, tags)
+                VALUES (new.id, new.source, new.content, new.tags);
+            END;
+        """)
 
     conn.commit()
     return conn
@@ -183,12 +245,16 @@ def index_content(
     source: str,
     content: str,
     tags: str = "",
+    session_id: str = None,
 ) -> dict:
     """Index content into the FTS5 database. Returns stats."""
     now = datetime.now().isoformat()
 
+    # Qualify source with session ID if present
+    qualified_source = qualify_source(source, session_id=session_id)
+
     # Remove old entries for this source (re-index)
-    conn.execute("DELETE FROM chunks WHERE source = ?", (source,))
+    conn.execute("DELETE FROM chunks WHERE source = ?", (qualified_source,))
 
     chunks = chunk_content(content)
     if not chunks:
@@ -205,12 +271,12 @@ def index_content(
             """INSERT INTO chunks (source, chunk_index, content, content_hash,
                tags, indexed_at, byte_size)
                VALUES (?, ?, ?, ?, ?, ?, ?)""",
-            (source, i, chunk, content_hash, tags, now, byte_size),
+            (qualified_source, i, chunk, content_hash, tags, now, byte_size),
         )
 
     conn.commit()
     return {
-        "source": source,
+        "source": qualified_source,
         "chunks": len(chunks),
         "total_bytes": total_bytes,
         "indexed_at": now,
@@ -254,10 +320,10 @@ def main():
     content = read_input(args)
 
     db_path = get_db_path(args.project)
-    conn = init_db(db_path)
+    conn = init_db(db_path, project_dir=args.project)
 
     try:
-        stats = index_content(conn, args.source, content, args.tags)
+        stats = index_content(conn, args.source, content, args.tags, session_id=get_session_id())
         print(
             f"Indexed {stats['source']}: "
             f"{stats['chunks']} chunks, "

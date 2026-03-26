@@ -27,14 +27,22 @@ No external dependencies. Python 3.8+.
 """
 
 import argparse
+import os
 import re
 import sqlite3
-import subprocess
 import sys
 from datetime import datetime
 from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).resolve().parent
+
+# Approximate tokens-per-byte ratio for mixed code/text content.
+CHARS_PER_TOKEN = 3.8
+
+
+def get_session_id() -> str:
+    """Get the current session ID from environment variable (for isolation)."""
+    return os.environ.get("CTX_SESSION_ID", "")
 
 # Patterns that indicate high-priority lines
 ERROR_PATTERNS = [
@@ -134,20 +142,24 @@ def compress(text: str, line_budget: int = 50) -> str:
     for i, l, c in non_noise[-3:]:
         selected.add(i)
 
-    # Priority 1: Errors
+    # Priority 1: Errors (with context lines, but only if they're not noise)
     errors = [(i, l) for i, l, c in classified if c == "error"]
     for i, l in errors[:error_budget]:
+        if len(selected) >= line_budget:
+            break
         selected.add(i)
-        # Include 1 line of context before and after errors
-        if i > 0:
+        # Include 1 line of context before and after errors (only if not noise)
+        if i > 0 and classify_line(lines[i - 1]) != "noise":
             selected.add(i - 1)
-        if i < total_lines - 1:
+        if i < total_lines - 1 and classify_line(lines[i + 1]) != "noise":
             selected.add(i + 1)
 
     # Priority 2: Warnings
     if len(selected) < line_budget:
         warnings = [(i, l) for i, l, c in classified if c == "warning"]
         for i, l in warnings[:warning_budget]:
+            if len(selected) >= line_budget:
+                break
             selected.add(i)
 
     # Priority 3: Structure
@@ -158,10 +170,14 @@ def compress(text: str, line_budget: int = 50) -> str:
         # Evenly sample structure lines
         if len(structures) <= budget:
             for i, l in structures:
+                if len(selected) >= line_budget:
+                    break
                 selected.add(i)
         else:
             step = len(structures) / budget
             for j in range(budget):
+                if len(selected) >= line_budget:
+                    break
                 idx = int(j * step)
                 selected.add(structures[idx][0])
 
@@ -177,6 +193,11 @@ def compress(text: str, line_budget: int = 50) -> str:
                 if len(selected) >= line_budget:
                     break
                 selected.add(content[j][0])
+
+    # Hard cap: ensure we never exceed the budget
+    if len(selected) > line_budget:
+        sorted_indices = sorted(selected)
+        selected = set(sorted_indices[:line_budget])
 
     # Build output in original order
     sorted_indices = sorted(selected)
@@ -290,36 +311,42 @@ def main():
             print("Error: --source is required when using --index.", file=sys.stderr)
             sys.exit(1)
 
-        index_script = SCRIPT_DIR / "ctx_index.py"
-        proc = subprocess.run(
-            [
-                sys.executable,
-                str(index_script),
-                "--source",
-                args.source,
-                "--project",
-                args.project,
-            ],
-            input=full_content,
-            capture_output=True,
-            text=True,
-        )
-        if proc.returncode != 0:
-            print(f"Warning: indexing failed: {proc.stderr.strip()}", file=sys.stderr)
-        index_note = f", full content indexed as '{args.source}'"
+        # Import and call directly (atomic, faster than subprocess)
+        import ctx_index
+
+        try:
+            db_path = ctx_index.get_db_path(args.project)
+            conn = ctx_index.init_db(db_path)
+            try:
+                stats = ctx_index.index_content(
+                    conn, args.source, full_content,
+                    session_id=get_session_id()
+                )
+                index_note = f", full content indexed as '{stats['source']}'"
+                print(f"Indexed {stats['source']}: {stats['chunks']} chunks, {stats['total_bytes']:,} bytes", file=sys.stderr)
+            finally:
+                conn.close()
+        except Exception as e:
+            print(f"Warning: indexing failed: {e}", file=sys.stderr)
+            index_note = ""
     else:
         index_note = ""
 
     # Output compressed result
     print(compressed)
+
+    # Calculate byte and token estimates
+    original_bytes = len(full_content.encode("utf-8"))
+    compressed_bytes = len(compressed.encode("utf-8"))
+    original_tokens = int(original_bytes / CHARS_PER_TOKEN)
+    compressed_tokens = int(compressed_bytes / CHARS_PER_TOKEN)
+
     print(
-        f"\n[compressed: {len(compressed.splitlines())}/{total_lines} lines{index_note}]"
+        f"\n[compressed: {len(compressed.splitlines())}/{total_lines} lines (~{original_tokens} → ~{compressed_tokens} tokens){index_note}]"
     )
 
     # Log compression event for stats tracking
     source_label = args.source or "(stdin)"
-    original_bytes = len(full_content.encode("utf-8"))
-    compressed_bytes = len(compressed.encode("utf-8"))
     log_compression(
         args.project,
         source_label,
