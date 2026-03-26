@@ -16,7 +16,7 @@ sentry-monitoring*
 gpu-workers-python*
 
 # Memory store — local only, never commit
-memory/scripts/__pycache__/*
+**/__pycache__/
 memory/store/episodic/
 memory/store/semantic/
 memory/store/procedural/

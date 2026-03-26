@@ -1,0 +1,7 @@
+interface:
+  display_name: "Context Management"
+  short_description: "Extend effective context window across all AI coding agents"
+  default_prompt: "Use $context-management when working in long sessions, when tool outputs are large (logs, diffs, snapshots), or when resuming after compaction. Provides SQLite FTS5 indexing, BM25 search, deterministic compression, and session checkpointing."
+
+policy:
+  allow_implicit_invocation: true

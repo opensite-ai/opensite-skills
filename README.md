@@ -146,6 +146,191 @@ EOF
 
 ---
 
+## Context Management — Extending the Context Window
+
+This skill provides **context virtualization** for AI coding agents: SQLite FTS5 indexing, BM25 keyword search, deterministic output compression, session checkpointing, and a stats dashboard. It keeps large tool outputs out of the context window while making them searchable, and saves session state across compaction boundaries.
+
+The architecture is directly inspired by [context-mode](https://github.com/context-labs/context-mode), the popular Claude Code plugin that automatically compresses and indexes tool outputs via hooks. This skill delivers the same core capabilities as a portable, agent-driven workflow that works on any platform.
+
+### Why This Exists
+
+Claude Code has a hook system (`PreToolUse`, `PostToolUse`) that lets context-mode intercept tool calls automatically. Codex CLI, Cursor, Windsurf, Copilot, and other agents don't have this. Without hooks, large outputs from test suites, git diffs, log files, and file reads flood the context window and trigger early compaction.
+
+This skill bridges that gap. Instead of hooks doing the work implicitly, the agent reads the SKILL.md routing rules and invokes compression/indexing explicitly. The end result is the same: full content stays in a local SQLite database, a compact summary enters context, and targeted BM25 search retrieves specific snippets later.
+
+### The Four Core Scripts
+
+All scripts live in `context-management/scripts/`. Python 3.8+, zero external dependencies.
+
+| Script | Purpose |
+|--------|---------|
+| `ctx_compress.py` | Deterministic output compression with priority extraction (errors > warnings > structure > content) |
+| `ctx_index.py` | Chunk content by markdown headings, store in SQLite FTS5 virtual table |
+| `ctx_search.py` | BM25-ranked keyword search with source/tag filtering |
+| `ctx_checkpoint.py` | Save/load structured session state across compaction boundaries |
+| `ctx_stats.py` | Dashboard showing cumulative token savings from compression |
+
+### Quick Start
+
+```bash
+# Compress a large test run to 40 lines, indexing the full output for later search
+cargo test 2>&1 | python context-management/scripts/ctx_compress.py \
+  --lines 40 --index --source "test:cargo-test" --project .
+
+# Search for specific failures later (without re-running or re-reading)
+python context-management/scripts/ctx_search.py \
+  --query "FAILED assertion" --project .
+
+# Save session state before compaction hits
+python context-management/scripts/ctx_checkpoint.py save \
+  --project . --task "Implementing OAuth2 flow" \
+  --completed "Added routes, Created token model" \
+  --in-progress "Writing refresh middleware"
+
+# Reload after compaction
+python context-management/scripts/ctx_checkpoint.py load --project .
+
+# Check how much context you've saved
+python context-management/scripts/ctx_stats.py --brief --project .
+# Output: ctx-stats: 12 compressions, ~4,231 tokens saved (76% reduction)
+```
+
+### Compatibility with context-mode
+
+This is the most common question developers ask when they already use context-mode, so here is the full breakdown by platform:
+
+#### Claude Code users (context-mode already installed)
+
+**No conflict.** context-mode operates via Claude Code's hook system at the engine level. This skill is a set of Python scripts + a SKILL.md instruction file that doesn't register hooks, doesn't modify Claude Code's config, and doesn't touch the context-mode pipeline. Running `setup.sh` symlinks the skill into `.claude/skills/` -- a directory context-mode doesn't use.
+
+**Will it add value?** Marginal. context-mode already handles compression, indexing, and checkpointing automatically via hooks. The only pieces that could supplement it:
+
+- `ctx_stats.py` -- if you want a different stats view than `/context-mode:ctx-stats`
+- `ctx_checkpoint.py` -- if you want manual session checkpoints beyond what context-mode does automatically
+- FTS5 search -- if you want to query indexed content differently
+
+In practice, a Claude Code user with context-mode installed would rarely invoke this skill. It sits dormant and that's fine.
+
+#### Codex CLI users (context-mode npm + MCP server installed)
+
+**Keep the MCP server in `config.toml`.** The two serve different roles:
+
+- The **MCP server** gives Codex *tool-level* access to context-mode's compress/search/checkpoint functions. Codex can call these as MCP tools.
+- This **skill** gives Codex *instruction-level* guidance on *when and how* to trigger compression and indexing. It's the routing layer -- SKILL.md tells the agent "when output exceeds 200 lines, pipe it through `ctx_compress.py`."
+
+The core gap is that Codex has no hooks to *automatically* trigger context-mode's tools. This skill bridges that gap with explicit agent routing instructions. Having both installed causes no conflict -- worst case the agent has two ways to compress output and picks one.
+
+**Should you still copy context-mode's AGENTS.md?** (`cp node_modules/context-mode/configs/codex/AGENTS.md ./AGENTS.md`)
+
+**No.** This skill replaces that step. context-mode's AGENTS.md tells the agent how to use its compress/search/checkpoint tools -- our SKILL.md does the same thing but designed for the skill-based invocation pattern. Having both would give the agent duplicate (and slightly conflicting) instructions.
+
+The recommended setup for Codex:
+
+```
+# In config.toml -- keep the MCP server
+[mcp-servers.context-mode]
+command = "npx"
+args = ["context-mode", "--mcp"]
+
+# In your skills directory -- install this skill via setup.sh
+# Skip the context-mode AGENTS.md copy step
+```
+
+#### Codex CLI users (no context-mode installed)
+
+Use this skill as-is. It's fully self-contained with its own Python scripts, SQLite database, and routing instructions. No npm install needed, no MCP server to configure.
+
+```bash
+# Just run setup.sh -- the skill is ready
+./setup.sh
+```
+
+#### Cursor, Windsurf, Cline, Copilot users
+
+This skill works on all of these platforms. None of them have hook support, so the skill's explicit-invocation pattern is the only option for context virtualization. Run `setup.sh` and the SKILL.md routing rules take effect.
+
+### Storage and Privacy
+
+All data is stored under `.ctx/` in the project root:
+
+```
+.ctx/
+├── context.db          <- SQLite FTS5 database (all indexed outputs)
+├── checkpoint.md       <- Latest session checkpoint
+└── checkpoints/        <- Historical checkpoints
+    └── YYYY-MM-DD-HHMMSS.md
+```
+
+Add `.ctx/` to your project's `.gitignore`. This data is session-local and should never be committed. The scripts, SKILL.md, and routing rules are what get versioned -- the database is ephemeral.
+
+### Measuring Context Savings
+
+The `ctx_stats.py` script tracks every compression event and reports cumulative savings:
+
+```bash
+# One-liner for quick checks (good for mid-session sanity checks)
+python context-management/scripts/ctx_stats.py --brief --project .
+# ctx-stats: 12 compressions, ~4,231 tokens saved (76% reduction)
+
+# Full dashboard with per-source breakdown
+python context-management/scripts/ctx_stats.py --project .
+# Context Savings Report (All-Time)
+# ==================================================
+#   Compressions:              12
+#   Original size:         21.4 KB  (~5,631 tokens)
+#   Compressed size:        5.1 KB
+#   Total saved:           16.3 KB  (~4,231 tokens)
+#   Context saved:          76.2%
+#   Avg compression:       23.8%
+#   Lines: 847 -> 203 (644 eliminated)
+#   Period: 2026-03-25T14:20:00 to 2026-03-26T09:15:32
+#
+# Top Sources by Savings
+# --------------------------------------------------
+#   test:cargo-test             5x  saved   8.2 KB  (21% ratio)
+#   git:diff-main               3x  saved   4.1 KB  (25% ratio)
+#   log:fly-deploy              2x  saved   2.8 KB  (18% ratio)
+
+# Current session only (last 4 hours)
+python context-management/scripts/ctx_stats.py --session --project .
+
+# Reset the log (start fresh)
+python context-management/scripts/ctx_stats.py --reset --project .
+```
+
+This is the equivalent of Claude Code's `/context-mode:ctx-stats` command, adapted for the skill-based workflow.
+
+### How Compression Works
+
+`ctx_compress.py` uses deterministic priority-based line classification, not LLM summarization:
+
+1. **Error lines** (40% of budget) -- stack traces, `ERROR:`, `FAIL:`, panic messages
+2. **Warning lines** (15% of budget) -- `WARNING:`, `WARN:`, deprecation notices
+3. **Structure lines** (25% of budget) -- headings, function signatures, section markers
+4. **Content lines** (remainder) -- everything else, sampled to fit the budget
+
+The first 3 and last 3 non-noise lines are always included for orientation. Noise lines (blank lines, debug spam, progress bars) are dropped entirely. The output is deterministic -- the same input always produces the same compressed output.
+
+### Combined Workflow with Memory System
+
+Context management handles the *current session* (keeping large outputs searchable without burning context). The memory system handles *cross-session* persistence (remembering decisions, facts, and workflows). They complement each other:
+
+```
+Session start:
+  1. /memory-recall                           <- load long-term context
+  2. ctx_checkpoint.py load --project .       <- load session checkpoint (if resuming)
+
+During session:
+  3. ctx_compress.py + ctx_index.py           <- manage large outputs
+  4. ctx_search.py                            <- retrieve indexed snippets
+
+Session end:
+  5. ctx_checkpoint.py save --project .       <- save session state
+  6. /memory-write                            <- persist decisions and facts
+```
+
+---
+
 ## Cloud Platform Sync
 
 Both Perplexity Computer and Claude Desktop store skills in the cloud and require browser-based upload (neither has a public API). The sync scripts use **Playwright driving your real Brave browser** (headed, visible window) to bypass Cloudflare bot detection that blocks headless automation.
@@ -323,6 +508,12 @@ git push
 | `memory-write` | Extracts and persists session learnings | End of session / "save this" / "remember this" |
 | `memory-consolidate` | Decays confidence, deduplicates, compresses old sessions | Weekly / monthly / after bulk writes |
 
+### Context Management
+
+| Skill | Description |
+| ------- | ------------- |
+| `context-management` | Context virtualization for extending effective context windows. SQLite FTS5 indexing of large tool outputs, BM25 keyword search, deterministic priority-based output compression, session checkpointing across compaction boundaries, and a stats dashboard for measuring token savings. Essential for Codex CLI and other agents without hook-based output interception. |
+
 ### AI / Research
 
 | Skill | Description |
@@ -446,6 +637,16 @@ opensite-skills/
 │   └── SKILL.md
 ├── memory-consolidate/            ← Maintenance agent
 │   └── SKILL.md
+├── context-management/            ← Context virtualization (FTS5, compression, checkpoints)
+│   ├── SKILL.md
+│   ├── agents/openai.yaml
+│   ├── references/activation.md
+│   └── scripts/
+│       ├── ctx_index.py
+│       ├── ctx_search.py
+│       ├── ctx_compress.py
+│       ├── ctx_checkpoint.py
+│       └── ctx_stats.py
 ├── ai-research-workflow/          ← Multi-step AI pipeline orchestration
 ├── ai-retrieval-patterns/         ← RAG, PageIndex, hybrid retrieval
 ├── agent-file-engine/             ← AGENTS.md authoring + coverage planning

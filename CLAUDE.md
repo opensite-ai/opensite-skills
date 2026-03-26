@@ -125,6 +125,12 @@ them automatically based on context.
 | `memory` | Direct memory store access — search, read, or write entries manually |
 | `memory-consolidate` | Weekly maintenance — decay, dedup, compress old sessions |
 
+### Context Management
+
+| Skill | When to Use |
+|-------|-------------|
+| `context-management` | Long sessions, large tool outputs, after compaction, context window running low. FTS5 indexing, BM25 search, output compression, session checkpointing. |
+
 ### Rust + Axum
 
 | Skill | When to Use |
