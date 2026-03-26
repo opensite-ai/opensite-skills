@@ -8,7 +8,7 @@ description: >
   working in long sessions, when tool outputs are large (logs, diffs, snapshots),
   or when resuming after compaction. Essential for Codex CLI and other agents
   that lack hook-based automatic output interception.
-version: 1.0.0
+version: 1.1.0
 allowed-tools: "Read Write Bash Glob Grep Edit"
 compatibility: >
   Works with any AI coding agent. Designed primarily for Codex CLI (which lacks

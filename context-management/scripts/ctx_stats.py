@@ -192,16 +192,28 @@ def main():
     parser.add_argument("--project", default=".", help="Project directory")
     parser.add_argument("--brief", action="store_true", help="One-line summary")
     parser.add_argument(
-        "--session", action="store_true", help="Current session only (configurable via --session-hours)"
+        "--session",
+        action="store_true",
+        help="Current session only (configurable via --session-hours)",
     )
     parser.add_argument(
-        "--session-hours", type=int, default=4, help="Session window in hours (default: 4)"
+        "--session-hours",
+        type=int,
+        default=4,
+        help="Session window in hours (default: 4)",
     )
     parser.add_argument(
         "--reset", action="store_true", help="Clear the compression log"
     )
 
     args = parser.parse_args()
+
+    # Warn if --session-hours is used without --session
+    if args.session_hours != 4 and not args.session:
+        print(
+            "Warning: --session-hours has no effect without --session.", file=sys.stderr
+        )
+
     db_path = get_db_path(args.project)
     conn = open_db(db_path)
 

@@ -45,14 +45,11 @@ def get_git_context() -> str:
             ["git", "rev-parse", "--abbrev-ref", "HEAD"],
             capture_output=True,
             text=True,
-            timeout=2
+            timeout=2,
         ).stdout.strip()
 
         commit = subprocess.run(
-            ["git", "log", "--oneline", "-1"],
-            capture_output=True,
-            text=True,
-            timeout=2
+            ["git", "log", "--oneline", "-1"], capture_output=True, text=True, timeout=2
         ).stdout.strip()
 
         if branch and commit:
@@ -170,7 +167,11 @@ def load_checkpoint(project_dir: str, as_json: bool = False) -> str:
     checkpoint_path = ctx_dir / "checkpoint.md"
 
     if not checkpoint_path.exists():
-        return json.dumps({"error": "no checkpoint found"}) if as_json else "(no checkpoint found)"
+        return (
+            json.dumps({"error": "no checkpoint found"})
+            if as_json
+            else "(no checkpoint found)"
+        )
 
     content = checkpoint_path.read_text(encoding="utf-8")
 
@@ -205,7 +206,11 @@ def load_checkpoint(project_dir: str, as_json: bool = False) -> str:
                     current_section = "decisions"
                 elif "context" in section_name or "note" in section_name:
                     current_section = "context"
-            elif line.startswith("- ") and current_section in ["completed", "in_progress", "next_steps"]:
+            elif line.startswith("- ") and current_section in [
+                "completed",
+                "in_progress",
+                "next_steps",
+            ]:
                 data[current_section].append(line[2:])
             elif line.startswith("_Saved:"):
                 data["timestamp"] = line.replace("_Saved:", "").replace("_", "").strip()
@@ -218,6 +223,11 @@ def load_checkpoint(project_dir: str, as_json: bool = False) -> str:
                 elif current_section in ["completed", "in_progress", "next_steps"]:
                     # Non-bullet line in a list section - skip or append to last item
                     pass
+
+        # Normalize "(none)" strings to empty strings for JSON output
+        for key in ["task", "decisions", "context"]:
+            if data[key] in ["(none)", "(not specified)"]:
+                data[key] = ""
 
         return json.dumps(data, indent=2)
 
@@ -254,7 +264,9 @@ def main():
         "--next-steps", default="", help="Next steps (comma-separated)"
     )
     save_parser.add_argument(
-        "--decisions", default="", help="Key decisions made (comma-separated)"
+        "--decisions",
+        default="",
+        help="Key decisions (verbatim text; use '\\n' for multiple items)",
     )
     save_parser.add_argument(
         "--context", default="", help="Additional context or notes"
@@ -269,7 +281,9 @@ def main():
     # Load command
     load_parser = subparsers.add_parser("load", help="Load the latest checkpoint")
     load_parser.add_argument("--project", default=".", help="Project directory")
-    load_parser.add_argument("--json", action="store_true", help="Output as structured JSON")
+    load_parser.add_argument(
+        "--json", action="store_true", help="Output as structured JSON"
+    )
 
     # List command
     list_parser = subparsers.add_parser("list", help="List all archived checkpoints")

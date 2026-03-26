@@ -62,13 +62,9 @@ echo ""
 echo "Test 1: Indexing content from stdin..."
 echo "$TEST_CONTENT" | python "$SCRIPT_DIR/ctx_index.py" \
     --source "test:stdin" \
-    --project .
-if [ $? -eq 0 ]; then
-    echo "  ✓ PASS: ctx_index.py (stdin)"
-else
-    echo "  ✗ FAIL: ctx_index.py (stdin)"
-    exit 1
-fi
+    --project . \
+    || { echo "  ✗ FAIL: ctx_index.py (stdin)"; exit 1; }
+echo "  ✓ PASS: ctx_index.py (stdin)"
 
 # Test 2: ctx_index.py from file
 echo "$TEST_CONTENT" > test_file.txt
@@ -76,26 +72,18 @@ echo "Test 2: Indexing content from file..."
 python "$SCRIPT_DIR/ctx_index.py" \
     --source "test:file" \
     --file test_file.txt \
-    --project .
-if [ $? -eq 0 ]; then
-    echo "  ✓ PASS: ctx_index.py (file)"
-else
-    echo "  ✗ FAIL: ctx_index.py (file)"
-    exit 1
-fi
+    --project . \
+    || { echo "  ✗ FAIL: ctx_index.py (file)"; exit 1; }
+echo "  ✓ PASS: ctx_index.py (file)"
 
 # Test 3: ctx_index.py with tags
 echo "Test 3: Indexing content with tags..."
 echo "$TEST_CONTENT" | python "$SCRIPT_DIR/ctx_index.py" \
     --source "test:tagged" \
     --tags "test,smoke,validation" \
-    --project .
-if [ $? -eq 0 ]; then
-    echo "  ✓ PASS: ctx_index.py (with tags)"
-else
-    echo "  ✗ FAIL: ctx_index.py (with tags)"
-    exit 1
-fi
+    --project . \
+    || { echo "  ✗ FAIL: ctx_index.py (with tags)"; exit 1; }
+echo "  ✓ PASS: ctx_index.py (with tags)"
 
 # Test 4: ctx_search.py basic query
 echo "Test 4: Searching indexed content..."
@@ -171,11 +159,12 @@ python "$SCRIPT_DIR/ctx_checkpoint.py" save \
     --in-progress "current work" \
     --next-steps "step1, step2" \
     --decisions "Decision A: use X, Decision B: avoid Y" \
-    --context "Test context"
-if [ $? -eq 0 ] && [ -f .ctx/checkpoint.md ]; then
+    --context "Test context" \
+    || { echo "  ✗ FAIL: ctx_checkpoint.py (save)"; exit 1; }
+if [ -f .ctx/checkpoint.md ]; then
     echo "  ✓ PASS: ctx_checkpoint.py (save)"
 else
-    echo "  ✗ FAIL: ctx_checkpoint.py (save)"
+    echo "  ✗ FAIL: ctx_checkpoint.py (save) - checkpoint file not created"
     exit 1
 fi
 
@@ -264,8 +253,7 @@ echo "Test 17: Checking .gitignore auto-injection..."
 if [ -f .gitignore ] && grep -q ".ctx/" .gitignore; then
     echo "  ✓ PASS: .gitignore auto-injection"
 else
-    echo "  ✗ FAIL: .gitignore auto-injection"
-    exit 1
+    echo "  ✗ FAIL: .gitignore auto-injection"; exit 1
 fi
 
 echo ""

@@ -36,6 +36,9 @@ from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 
+# Ensure scripts/ is on sys.path for reliable ctx_index import
+sys.path.insert(0, str(SCRIPT_DIR))
+
 # Approximate tokens-per-byte ratio for mixed code/text content.
 CHARS_PER_TOKEN = 3.8
 
@@ -43,6 +46,7 @@ CHARS_PER_TOKEN = 3.8
 def get_session_id() -> str:
     """Get the current session ID from environment variable (for isolation)."""
     return os.environ.get("CTX_SESSION_ID", "")
+
 
 # Patterns that indicate high-priority lines
 ERROR_PATTERNS = [
@@ -316,14 +320,16 @@ def main():
 
         try:
             db_path = ctx_index.get_db_path(args.project)
-            conn = ctx_index.init_db(db_path)
+            conn = ctx_index.init_db(db_path, project_dir=args.project)
             try:
                 stats = ctx_index.index_content(
-                    conn, args.source, full_content,
-                    session_id=get_session_id()
+                    conn, args.source, full_content, session_id=get_session_id()
                 )
                 index_note = f", full content indexed as '{stats['source']}'"
-                print(f"Indexed {stats['source']}: {stats['chunks']} chunks, {stats['total_bytes']:,} bytes", file=sys.stderr)
+                print(
+                    f"Indexed {stats['source']}: {stats['chunks']} chunks, {stats['total_bytes']:,} bytes",
+                    file=sys.stderr,
+                )
             finally:
                 conn.close()
         except Exception as e:

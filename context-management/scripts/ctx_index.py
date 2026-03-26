@@ -98,12 +98,7 @@ def init_db(db_path: Path, project_dir: str = None) -> sqlite3.Connection:
     """)
 
     # Detect FTS5 availability
-    has_fts5 = False
-    try:
-        conn.execute("SELECT bm25(test) FROM (SELECT 1) AS test")
-        has_fts5 = True
-    except sqlite3.OperationalError:
-        pass
+    has_fts5 = sqlite3.sqlite_version_info >= (3, 9, 0)
 
     # Create appropriate FTS virtual table
     if has_fts5:
@@ -323,7 +318,9 @@ def main():
     conn = init_db(db_path, project_dir=args.project)
 
     try:
-        stats = index_content(conn, args.source, content, args.tags, session_id=get_session_id())
+        stats = index_content(
+            conn, args.source, content, args.tags, session_id=get_session_id()
+        )
         print(
             f"Indexed {stats['source']}: "
             f"{stats['chunks']} chunks, "
