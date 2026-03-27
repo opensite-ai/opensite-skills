@@ -14,7 +14,6 @@ metadata:
   opensite-scope: shared
   opensite-visibility: public
 allowed-tools: "Read Grep Bash"
-disable-model-invocation: true
 ---
 # Git Workflow Skill
 

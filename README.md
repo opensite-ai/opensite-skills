@@ -17,8 +17,9 @@ These skills follow the [Agent Skills open standard](https://agentskills.io) and
 | **GitHub Copilot** | `~/.copilot/skills/` (global) | Via `/` commands |
 | **Perplexity Computer** | Cloud upload — `perplexity.ai/account/org/skills` | Automatic trigger |
 | **Cursor** | `.cursor/skills/` per-repo | Via `/` commands |
+| **Mistral Vibe** | `~/.vibe/skills/` (global) | Automatic + `/skill-name` |
 
-> **One repo, zero copying.** Set this up once with the platform setup script and all tools read from the same directory via symlinks. Update a skill once — all tools see the change instantly.
+> **One repo, zero copying.** Set this up once with the platform setup script and all tools read from the same directory via symlinks. Update a skill once — all tools see the change instantly. This includes Mistral Vibe, which will automatically sync the skills from this repo.
 
 ---
 
@@ -35,7 +36,7 @@ cd ~/opensite-skills
 ./setup.sh
 ```
 
-The setup script detects which platforms are installed and creates symlinks from each platform's skills directory to this repo — no file copying.
+The setup script detects which platforms are installed and creates symlinks from each platform's skills directory to this repo — no file copying. This includes Mistral Vibe, which will automatically sync the skills from this repo.
 
 ---
 
@@ -332,6 +333,175 @@ Session end:
 
 ---
 
+## Large-Scale Refactor — Safe Multi-File Migrations
+
+This skill provides **guardrails, protocols, and hard stop constraints** for any AI coding task that will touch 50 or more files, run longer than a single agent session, or be parallelized across multiple agent instances. It exists because large-scale AI-assisted migrations reliably fail in three specific ways:
+
+- **Scope creep** — the agent identifies "related improvements" and starts touching things outside the defined task
+- **Context drift** — after processing many files, the agent loses track of what the original task actually was
+- **Emergent behavior** — parallel agents inventing new abstractions, reorganizing directories, or creating shared systems nobody asked for
+
+Once the skill is active, the rules are non-negotiable. The agent has exactly one job.
+
+### When It Activates
+
+The skill triggers automatically on Claude Desktop and Claude Code when any of these conditions are met:
+
+| Condition | Examples |
+|-----------|---------|
+| Task will touch ≥ 50 files | JS → TS migration, codebase-wide rename |
+| Work will span multiple sessions | Any refactor that won't finish in one context window |
+| Parallel agent instances | Factory Droid batch, Devin playbooks, Qoder Worktrees |
+| Explicit invocation | Any time you want spec-gate + guardrails, regardless of size |
+
+Trigger phrases that auto-load this skill on supported platforms:
+
+```
+"refactor * across the codebase"       "migrate * to *"
+"upgrade * from * to *"                "replace all * with *"
+"rename * throughout"                  "convert all * to *"
+"remove all instances of *"            "batch * across the codebase"
+```
+
+### The Five Core Mechanisms
+
+#### 1. The Spec Gate (§ 1)
+
+Every task must begin with a written spec before a single file is touched. The agent produces the spec and **halts** — waiting for a human to reply `approved` before any code is written. No exceptions.
+
+The spec includes:
+- A one-paragraph plain-English description of exactly what the task does
+- An explicit **IN SCOPE** file list (types, directories, operations)
+- An explicit **OUT OF SCOPE — DO NOT TOUCH** list
+- A decomposition into atomic subtasks, each independently reviewable
+- Acceptance criteria and a rollback plan
+
+#### 2. Scope Enforcement — The Substitution Test (§ 2)
+
+Before touching any file, the agent applies one test:
+
+> *"If I remove this change from the diff, does the task still fail?"*
+
+If the answer is no — if the task succeeds without this change — **the change doesn't happen.** This single rule prevents the vast majority of out-of-scope drift. The agent also maintains an `OBSERVATIONS.md` file for anything it notices but must not act on: bugs found while refactoring, performance improvements, style inconsistencies. Log it. Move on.
+
+#### 3. File Diff Budget per Session (§ 3.2)
+
+Each agent session has a hard ceiling on how many files it may touch. When the budget is hit, the agent commits, pushes, and stops. A human reviews before the next session begins.
+
+| Risk Level | Max files/session | Review cadence |
+|------------|------------------|----------------|
+| Low — type renames, import fixes | 200 files | End of session |
+| Medium — logic-adjacent refactors | 50 files | Every 25 files |
+| High — framework migrations, API changes | 20 files | Every 10 files |
+
+#### 4. Drift Detection Checkpoints (§ 3.4)
+
+At every review cadence interval the agent pauses and self-audits across five questions: Are all touched files in the IN SCOPE list? Were any new files created? Were any dependencies modified? Did any change fail the Substitution Test? Were any new abstractions or systems created? Any answer of "yes" triggers an immediate human checkpoint. The audit log is attached to the commit message.
+
+#### 5. Session Handoff File (§ 6)
+
+Long-running tasks commit a `.refactor-session.md` at the end of every session. It records completed subtasks, the in-progress subtask and its percentage, remaining files, decisions made during this session, edge cases discovered, and any active blockers. A fresh agent context — same or different model, same or different platform — reads this file and resumes without drift.
+
+### Usage Examples
+
+**Claude Code / Codex — starting a refactor with the spec gate:**
+
+```bash
+@large-scale-refactor js-to-ts-migration
+
+Convert all .js files in src/components/ to TypeScript.
+No logic changes. No style changes. Only type annotations
+and updating import extensions. Approximately 180 files.
+```
+
+The agent writes the full spec and outputs:
+
+```
+⏸ SPEC GATE: Please review and reply 'approved' to begin execution,
+or provide corrections.
+```
+
+No file is touched until you respond.
+
+**Claude Desktop — automatic activation from natural language:**
+
+```
+"Migrate all our API route handlers from Express callbacks to
+async/await. There are about 90 route files in src/routes/."
+```
+
+The skill loads automatically and begins with the spec gate.
+
+**Parallel agents — Factory Droid or Devin playbooks:**
+
+```
+# The approved spec is injected as the system prompt for every instance.
+# Each instance gets a non-overlapping directory assignment.
+# No instance may create shared utilities or communicate with other instances.
+
+Instance A → src/routes/auth/
+Instance B → src/routes/api/
+Instance C → src/routes/admin/
+Instance D → src/routes/webhooks/
+```
+
+**GitHub Copilot — explicit invocation:**
+
+```
+/large-scale-refactor rename-color-tokens
+```
+
+Copilot's workspace must be scoped to IN SCOPE directories only before starting.
+
+### Artifacts Produced
+
+| Artifact | When | Contents |
+|----------|------|----------|
+| `TASK_SPEC.md` | Before any work (spec gate) | Scope boundary, subtask decomposition, acceptance criteria, rollback plan |
+| `OBSERVATIONS.md` | Maintained throughout | Out-of-scope findings — logged for humans, never acted on |
+| `CHANGE_MANIFEST.md` | After each subtask | Files modified, scope compliance checklist, test results before/after |
+| `.refactor-session.md` | End of every session | Progress, remaining files, decisions made, active blockers, spec reference |
+| `.refactor-scope-allowlist` | Created from spec | Used by `git diff --name-only | grep -v -f` to catch any out-of-scope files |
+
+### Checkpoint Protocol
+
+The agent issues a `⏸ CHECKPOINT` message and stops completely when any of these occur:
+
+| Trigger | Required response |
+|---------|-----------------|
+| Spec gate | Reply `approved` or provide corrections |
+| File outside scope boundary discovered | Provide instruction: include, exclude, or abort |
+| New dependency would be required | Approve or reject the dependency change |
+| New shared abstraction would be needed | Approve or add to OBSERVATIONS.md |
+| Tests fail in a way the spec didn't anticipate | Report on the failure and provide direction |
+| File diff budget reached for this session | Review the commit, then clear to continue |
+| Ambiguity about whether a file is in scope | Answer the question — agent does not assume |
+
+No changes are made between the checkpoint message and your response.
+
+### Combining with Context Management and Memory
+
+For very large refactors spanning many sessions, pair this skill with `context-management` (to prevent context window exhaustion on large diffs) and the memory system (to persist architectural decisions across sessions):
+
+```
+Session start:
+  1. /memory-recall                           ← load long-term project context
+  2. ctx_checkpoint.py load --project .       ← restore context session state
+  3. Read .refactor-session.md               ← skill's own task handoff
+
+During session:
+  4. @large-scale-refactor enforces scope     ← guardrails active on every file touch
+  5. ctx_compress.py compresses large diffs   ← keeps git diffs out of the context window
+  6. ctx_search.py retrieves prior decisions  ← BM25 search over indexed session history
+
+Session end:
+  7. Commit .refactor-session.md             ← skill's task progress handoff
+  8. ctx_checkpoint.py save --project .       ← context session state saved
+  9. /memory-write                            ← decisions and facts to long-term memory
+```
+
+---
+
 ## Cloud Platform Sync
 
 Both Perplexity Computer and Claude Desktop store skills in the cloud and require browser-based upload (neither has a public API). The sync scripts use **Playwright driving your real Brave browser** (headed, visible window) to bypass Cloudflare bot detection that blocks headless automation.
@@ -515,6 +685,12 @@ git push
 | ------- | ------------- |
 | `context-management` | Context virtualization for extending effective context windows. SQLite FTS5 indexing of large tool outputs, BM25 keyword search, deterministic priority-based output compression, session checkpointing across compaction boundaries, and a stats dashboard for measuring token savings. Essential for Codex CLI and other agents without hook-based output interception. |
 
+### Refactoring / Migrations
+
+| Skill | Description |
+| ------- | ------------- |
+| `large-scale-refactor` | Guardrails, protocols, and hard-stop constraints for tasks touching 50+ files, spanning multiple sessions, or running across parallel agents. Enforces a spec-gate before any work begins, the Substitution Test on every file touch, per-session file diff budgets, periodic drift detection checkpoints, and a session handoff file that lets any agent resume without context loss. Produces `TASK_SPEC.md`, `OBSERVATIONS.md`, `CHANGE_MANIFEST.md`, and `.refactor-session.md` as structured artifacts. |
+
 ### AI / Research
 
 | Skill | Description |
@@ -655,6 +831,13 @@ opensite-skills/
 ├── client-side-routing-patterns/  ← History API, SPA routing hooks
 ├── code-review-security/          ← Security-focused PR review
 ├── git-workflow/                  ← Branch, commit, PR, CI conventions
+├── large-scale-refactor/          ← Spec-gate + guardrails for 50+ file migrations
+│   ├── SKILL.md
+│   ├── agents/
+│   ├── examples/
+│   ├── references/
+│   ├── scripts/
+│   └── templates/
 ├── opensite-ui-components/        ← @opensite/ui component patterns
 ├── page-speed-library/            ← @page-speed/* package development
 ├── pgvector-optimization/         ← pgvector HNSW/IVFFlat tuning

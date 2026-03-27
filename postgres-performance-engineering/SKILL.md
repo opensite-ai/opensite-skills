@@ -14,8 +14,7 @@ metadata:
   opensite-category: data
   opensite-scope: shared
   opensite-visibility: public
-context: fork
-agent: Explore
+
 ---
 # PostgreSQL Performance Engineering
 

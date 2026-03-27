@@ -14,8 +14,6 @@ metadata:
   opensite-scope: shared
   opensite-visibility: public
 allowed-tools: "Read Grep Glob Bash"
-context: fork
-agent: Explore
 ---
 # Agent File Engine
 

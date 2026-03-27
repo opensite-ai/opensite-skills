@@ -171,13 +171,7 @@ await context.addCookies([{
 const page = await context.newPage();
 
 console.log('  Navigating to skills page...');
-await page.goto(SKILLS_URL, { waitUntil: 'networkidle', timeout: 30000 });
-
-// claude.ai is a SPA — /customize sometimes loads before the router
-// pushes to /customize/skills. Give it a moment then verify.
-if (!page.url().includes('/skills')) {
-  await page.goto(SKILLS_URL, { waitUntil: 'networkidle', timeout: 30000 });
-}
+await navigateToSkills();
 
 const currentUrl = page.url();
 if (currentUrl.includes('/login') || currentUrl.includes('/auth') || !currentUrl.includes('claude.ai')) {
@@ -196,12 +190,31 @@ let uploaded = 0;
 let updated = 0;
 let failed = 0;
 
-// Wait for the page to fully settle — confirmed by the "Add skill" button being visible.
-// selector: button[aria-label="Add skill"] (Radix dropdown trigger with + icon)
+// Navigate to the skills page, handling the SPA redirect from /customize → /customize/skills.
+// Uses domcontentloaded (not networkidle) because claude.ai keeps persistent background
+// connections open that prevent networkidle from ever resolving reliably.
+async function navigateToSkills() {
+  await page.goto(SKILLS_URL, { waitUntil: 'domcontentloaded', timeout: 30000 });
+
+  // Give the SPA router up to 3s to finish its client-side redirect
+  await page.waitForTimeout(2000);
+
+  // If the router dropped us at /customize without /skills, click the sidebar link directly
+  if (!page.url().includes('/skills')) {
+    console.log('  SPA redirect detected — clicking Skills sidebar link...');
+    const skillsLink = page.locator('a[href="/customize/skills"]').first();
+    await skillsLink.waitFor({ state: 'visible', timeout: 10000 });
+    await skillsLink.click();
+    await page.waitForTimeout(1500);
+  }
+}
+
+// Wait for the skills tab to be interactive — the "Add skill" button is the only
+// reliable signal. We deliberately skip waitForLoadState('networkidle') because
+// claude.ai has persistent background traffic that causes it to never resolve.
 async function waitForPageReady() {
-  await page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
   await page.locator('button[aria-label="Add skill"]')
-    .waitFor({ state: 'visible', timeout: 15000 });
+    .waitFor({ state: 'visible', timeout: 20000 });
 }
 
 // Step 1+2: click the "+" button → click "Upload a skill" in the dropdown.
@@ -248,7 +261,8 @@ async function uploadFile(zipPath) {
   await fileChooser.setFiles(zipPath);
 
   // Give the server a moment to process / detect a name collision
-  await page.waitForTimeout(2500);
+  // Increased timeout for larger skills (e.g., large-scale-refactor at 31KB)
+  await page.waitForTimeout(10000);
 
   // If a duplicate was detected, Claude shows a "Replace [skill] skill?" confirmation.
   // Just click "Upload and replace" and we're done — no extra logic needed.
@@ -281,7 +295,7 @@ for (const zipPath of SKILL_ZIPS) {
 
   try {
     if (SKILL_ZIPS.indexOf(zipPath) > 0) {
-      await page.goto(SKILLS_URL, { waitUntil: 'networkidle', timeout: 30000 });
+      await navigateToSkills();
     }
     await waitForPageReady();
 

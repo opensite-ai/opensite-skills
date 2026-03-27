@@ -1,8 +1,9 @@
 ---
 name: memory-recall
 description: Deploys a background sub-agent to search the memory store and inject all relevant historical context before work begins. Use this skill at the start of any non-trivial session, when the user says "do you remember", when picking up previous work, or when starting a task on a named project. Returns a structured context brief covering project knowledge, architecture decisions, conventions, technology notes, and the current working memory state.
-version: 2.0.0
 allowed-tools: "Read, Bash, Glob, Grep"
+metadata:
+  version: 2.0.0
 ---
 
 # Memory Recall — Context Retrieval Agent

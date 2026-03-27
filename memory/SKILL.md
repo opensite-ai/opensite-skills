@@ -1,8 +1,9 @@
 ---
 name: memory
 description: "The OpenSite persistent long-term memory store. Provides a hierarchical filesystem tree for all agent memories across four cognitive layers: episodic (session history), semantic (project/tech/user knowledge), procedural (decisions, workflows, conventions), and working (active session state). Use this skill to directly read, write, search, or inspect memory entries. For automated session capture use memory-write; for context retrieval before a task use memory-recall; for periodic maintenance use memory-consolidate."
-version: 2.0.0
 allowed-tools: "Read, Write, Bash, Glob, Grep, Edit"
+metadata:
+  version: 2.0.0
 ---
 
 # Memory Store

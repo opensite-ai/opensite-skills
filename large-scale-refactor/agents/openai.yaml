@@ -1,0 +1,39 @@
+name: large-scale-refactor
+description: Guardrails for large-scale AI refactoring tasks
+author: opensite-ai
+version: 1.0.0
+activation:
+  patterns:
+    - "refactor * across"
+    - "migrate * to"
+    - "upgrade * from"
+    - "replace all"
+    - "update every"
+    - "rename * throughout"
+    - "convert all"
+    - "remove all instances"
+    - "batch * across the codebase"
+  file_threshold: 50
+  automatic: true
+platforms:
+  - claude-code
+  - codex
+  - cursor
+  - copilot
+  - qoder-quest
+  - factory-droid
+  - devin
+features:
+  - spec_gate
+  - scope_enforcement
+  - batch_execution
+  - drift_detection
+  - parallel_isolation
+  - verification_sequence
+tags:
+  - refactor
+  - migration
+  - long-running
+  - multi-agent
+  - guardrails
+  - agentic

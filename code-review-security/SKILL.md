@@ -15,8 +15,6 @@ metadata:
   opensite-scope: shared
   opensite-visibility: public
 allowed-tools: "Read Grep Glob Bash"
-context: fork
-agent: Explore
 ---
 # Security Code Review Skill
 

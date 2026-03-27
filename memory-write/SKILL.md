@@ -1,8 +1,9 @@
 ---
 name: memory-write
 description: Deploys a background sub-agent to extract and persist important information from the current conversation into the long-term memory store. Invoke this skill at the end of a work session, after major architectural decisions, after fixing a non-trivial bug, or whenever the user says "save this", "remember this", or "store to memory". The agent analyzes the conversation for decisions, preferences, patterns, and facts then writes them to the correct memory layer automatically.
-version: 2.0.0
 allowed-tools: "Read, Write, Bash, Glob, Grep, Edit"
+metadata:
+  version: 2.0.0
 ---
 
 # Memory Write — Session Capture Agent

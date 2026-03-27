@@ -1,9 +1,9 @@
 ---
 name: memory-consolidate
 description: Runs a background maintenance agent that consolidates, deduplicates, decays confidence, and compresses old sessions in the memory store. Run this skill periodically (weekly or monthly) to keep the memory store lean and high-signal. Also useful after large batches of memory-write operations. Prevents the store from growing stale or bloated over time.
-version: 2.0.0
 allowed-tools: "Read, Write, Bash, Glob, Grep, Edit"
-disable-model-invocation: false
+metadata:
+  version: 2.0.0
 ---
 
 # Memory Consolidate — Maintenance Agent

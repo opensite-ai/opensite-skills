@@ -107,6 +107,20 @@ else
 fi
 echo ""
 
+# ── Mistral Vibe ──────────────────────────────────────────────────────────────
+VIBE_SKILLS="$HOME/.vibe/skills"
+if [ -d "$HOME/.vibe" ]; then
+  echo "── Mistral Vibe ────────────────────────────────────────────────"
+  mkdir -p "$VIBE_SKILLS"
+  for skill in "$SKILLS_DIR"/*/; do
+    link_skill "$skill" "$VIBE_SKILLS"
+  done
+  PLATFORMS+=("Mistral Vibe")
+else
+  echo "── Mistral Vibe — SKIPPED (not installed)"
+fi
+echo ""
+
 # ── Repo-level (optional) ────────────────────────────────────────────────────
 if [ "${LINK_REPO:-0}" = "1" ]; then
   echo "── Repo-level (.agents/skills) ───────────────────────────────"
@@ -124,7 +138,7 @@ echo "════════════════════════�
 if [ ${#PLATFORMS[@]} -gt 0 ]; then
   echo "  Linked $SKILL_COUNT skills across: ${PLATFORMS[*]}"
 else
-  echo "  No platforms detected. Install Claude Code, Codex, Copilot (gh), Cursor, or Factory/Droid first."
+  echo "  No platforms detected. Install Claude Code, Codex, Copilot (gh), Cursor, Factory/Droid, or Mistral Vibe first."
   echo "  Then re-run this script."
 fi
 echo ""
