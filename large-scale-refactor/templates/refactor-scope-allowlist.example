@@ -1,0 +1,145 @@
+# =============================================================================
+# .refactor-scope-allowlist — Example with Annotations
+# =============================================================================
+#
+# This file tells verify_scope.py which files the current refactor task is
+# allowed to touch.  One pattern per line.  Lines beginning with '#' are
+# comments and are ignored by the script.
+#
+# GENERATE THIS FILE automatically from your TASK_SPEC.md:
+#
+#     python scripts/generate_allowlist.py TASK_SPEC.md
+#
+# Or copy this example, strip the comments, and edit manually.
+#
+# VERIFY compliance at any point during the refactor:
+#
+#     python scripts/verify_scope.py                # report only
+#     python scripts/verify_scope.py --strict       # exit 1 on any violation
+#
+# =============================================================================
+# PATTERN TYPES
+# =============================================================================
+#
+# 1. DIRECTORY PREFIX  (trailing slash required)
+# -----------------------------------------------
+# Matches any file whose path starts with this prefix.
+# Use for entire directory trees.
+#
+#     src/components/         matches  src/components/Button.tsx
+#                             matches  src/components/forms/Input.tsx
+#                             matches  src/components/forms/deep/Nested.tsx
+#
+#     tests/unit/             matches  tests/unit/Button.test.tsx
+#                             does NOT match  tests/integration/Button.test.tsx
+#
+# 2. GLOB PATTERN  (* wildcard)
+# -----------------------------------------------
+# Matched against the FULL file path AND the bare filename.
+# This means *.js matches src/components/Button.js without needing **/*.js.
+#
+#     *.js                    matches  src/Button.js
+#                             matches  src/utils/format.js
+#                             does NOT match  src/Button.ts
+#
+#     *.{ts,tsx}              NOT supported — use two separate lines instead:
+#     *.ts
+#     *.tsx
+#
+#     src/**/*.tsx            matches  src/Button.tsx
+#                             matches  src/forms/Input.tsx
+#                             matches  src/forms/deep/Nested.tsx
+#
+#     **/__tests__/**/*.test.ts  matches any .test.ts inside any __tests__ dir
+#
+# 3. EXACT FILE PATH
+# -----------------------------------------------
+# Matches one specific file only.  Useful for config files that must be
+# updated as part of the migration (e.g., a tsconfig.json or babel.config.js).
+#
+#     tsconfig.json           matches  tsconfig.json  (repo root only)
+#     src/index.ts            matches  src/index.ts   (exact path)
+#
+# =============================================================================
+# EXAMPLE: JavaScript → TypeScript Migration
+# =============================================================================
+# Task: Convert all .js/.jsx files in src/ to .ts/.tsx
+# Files created: .ts/.tsx replacements for every .js/.jsx in src/
+# Files NOT touched: config/, scripts/, public/, node_modules/, *.json
+# =============================================================================
+
+# Source directories being converted
+src/components/
+src/hooks/
+src/utils/
+src/pages/
+src/lib/
+src/context/
+
+# Test files co-located with source
+src/**/*.test.js
+src/**/*.spec.js
+src/**/*.test.jsx
+src/**/*.spec.jsx
+
+# Input file types (original .js/.jsx files being replaced)
+*.js
+*.jsx
+
+# Output file types (new .ts/.tsx files being created)
+# These are spec-defined outputs — acceptable new files
+*.ts
+*.tsx
+
+# Root-level config files that must be updated for TypeScript support
+tsconfig.json
+tsconfig.build.json
+babel.config.js
+jest.config.js
+
+# =============================================================================
+# EXAMPLE: CSS-in-JS → CSS Modules Migration (different project layout)
+# =============================================================================
+# Uncomment and adapt for a different migration type:
+#
+# app/components/
+# app/features/
+# app/shared/ui/
+# *.styles.ts
+# *.module.css
+# =============================================================================
+
+# =============================================================================
+# EXAMPLE: Rails route handler refactor
+# =============================================================================
+# Uncomment and adapt:
+#
+# app/controllers/
+# app/serializers/
+# spec/controllers/
+# spec/requests/
+# *.rb
+# =============================================================================
+
+# =============================================================================
+# WHAT SHOULD NOT APPEAR IN THIS FILE
+# =============================================================================
+#
+# Do NOT add patterns for:
+#
+#   node_modules/             — never touched
+#   .git/                     — never touched
+#   dist/ or build/           — build outputs, not source
+#   package.json              — dependency changes require explicit approval (§ 2.4)
+#   package-lock.json         — same
+#   yarn.lock                 — same
+#   Cargo.toml                — same
+#   Gemfile                   — same
+#   *.env                     — environment files are never in scope
+#   CI/CD configs             — .github/, .gitlab-ci.yml, Jenkinsfile, etc.
+#   Infrastructure configs    — Dockerfile, fly.toml, terraform/, etc.
+#
+# If any of the above appear in `git diff --name-only` during the refactor,
+# verify_scope.py will flag them and the agent must issue a ⏸ CHECKPOINT.
+#
+# =============================================================================

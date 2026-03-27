@@ -1,8 +1,16 @@
 name: large-scale-refactor
-description: Guardrails for large-scale AI refactoring tasks
+description: >
+  Guardrails, protocols, and operating constraints for large-scale, long-running,
+  or parallelized AI coding tasks — migrations, codebase-wide refactors, framework
+  upgrades, and any task touching 50+ files. Prevents scope creep, context drift,
+  silent compounding errors, and emergent behavior outside the defined task boundary.
 author: opensite-ai
 version: 1.0.0
+license: MIT
+
 activation:
+  automatic: true
+  file_threshold: 50
   patterns:
     - "refactor * across"
     - "migrate * to"
@@ -13,8 +21,7 @@ activation:
     - "convert all"
     - "remove all instances"
     - "batch * across the codebase"
-  file_threshold: 50
-  automatic: true
+
 platforms:
   - claude-code
   - codex
@@ -23,13 +30,18 @@ platforms:
   - qoder-quest
   - factory-droid
   - devin
+
 features:
   - spec_gate
   - scope_enforcement
+  - pilot_batch
   - batch_execution
   - drift_detection
   - parallel_isolation
   - verification_sequence
+  - context_flushing
+  - session_handoff
+
 tags:
   - refactor
   - migration
@@ -37,3 +49,81 @@ tags:
   - multi-agent
   - guardrails
   - agentic
+
+# ── Circuit Breaker ────────────────────────────────────────────────────────
+# Tracks net-new lines of logic written within a single change.
+# Soft threshold:  agent receives a nudge to review before continuing.
+# Hard threshold:  agent must halt, log to OBSERVATIONS.md, and surface to human.
+circuit_breaker:
+  soft_threshold: 20 # lines of net-new logic — nudge
+  hard_threshold: 50 # lines of net-new logic — mandatory halt (§ 2.5)
+
+# ── File Diff Budget Defaults ──────────────────────────────────────────────
+# Maximum files an agent may touch per session before committing and halting.
+# Risk level is determined by the nature of the change (see § 3.2 in SKILL.md).
+file_budget_defaults:
+  low_risk: 200 # type renames, import fixes, comment updates
+  medium_risk: 50 # logic-adjacent refactors, API surface changes
+  high_risk: 20 # framework migrations, behaviour-changing rewrites
+
+# ── Pilot Batch ────────────────────────────────────────────────────────────
+# Recommended maximum files for the first batch of any new refactor task
+# regardless of risk level.  Validates the spec and approach before scaling.
+pilot_batch:
+  recommended_max: 20
+
+# ── Human Checkpoint Triggers ──────────────────────────────────────────────
+# Every trigger below is a hard stop: the agent outputs a ⏸ CHECKPOINT
+# message and takes no further action until the human explicitly clears it.
+human_checkpoint_triggers:
+  - spec_gate # § 1.2 — spec must be approved before execution begins
+  - drift_check_failure # § 3.4 — any "yes" answer in the 5-question self-audit
+  - out_of_scope_file # § 2   — any changed file not in the IN SCOPE list
+  - new_dependency_required # § 2.4 — adding/removing/upgrading any dependency
+  - new_abstraction_required # § 2.3 — creating any shared utility, base class, or module
+  - unexpected_test_failure # § 5   — build/test failure not anticipated by the spec
+  - file_budget_reached # § 3.2 — session hit its max-files ceiling
+  - spec_ambiguity # § 8   — agent is unsure whether a file is in scope
+  - net_new_code_threshold # § 2.5 — 50+ lines of net-new logic in a single change
+  - context_flush_signal # § 6.2 — agent shows signs of context degradation
+
+# ── Drift Detection ────────────────────────────────────────────────────────
+drift_detection:
+  cadence_files: 25 # run self-audit every N files touched (§ 3.4)
+  questions:
+    - all_changed_files_in_scope
+    - no_unauthorized_new_files
+    - no_dependency_changes
+    - substitution_test_passed
+    - no_new_abstractions_created
+
+# ── Artifacts ─────────────────────────────────────────────────────────────
+# Files the agent is expected to produce during a refactor task.
+artifacts:
+  - name: TASK_SPEC.md
+    when: before_first_file_touch
+    required: true
+  - name: OBSERVATIONS.md
+    when: on_demand_during_task
+    required: false
+  - name: CHANGE_MANIFEST.md
+    template: templates/change-manifest.md
+    when: after_each_subtask
+    required: true
+  - name: .refactor-session.md
+    template: templates/session-handoff.md
+    when: end_of_every_session
+    required: true
+  - name: .refactor-scope-allowlist
+    template: templates/refactor-scope-allowlist.example
+    when: generated_from_spec
+    required: true
+
+# ── Invocation ─────────────────────────────────────────────────────────────
+invocation:
+  claude_code: "@large-scale-refactor [task-name]"
+  codex: "@large-scale-refactor [task-name]"
+  cursor: "/large-scale-refactor [task-name]"
+  copilot: "/large-scale-refactor [task-name]"
+  qoder_quest: "Code with Spec scenario"
+  factory_droid: "inject approved spec as system prompt before delegation"

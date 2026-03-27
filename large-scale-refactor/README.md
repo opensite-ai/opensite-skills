@@ -51,10 +51,7 @@ batch * across the codebase
 git clone https://github.com/opensite-ai/opensite-skills.git
 cd opensite-skills/large-scale-refactor
 
-# Install dependencies (if any)
-pip install -r requirements.txt  # if scripts have dependencies
-
-# Make scripts executable
+# Make scripts executable (no external dependencies — stdlib only)
 chmod +x scripts/*.py
 ```
 
@@ -269,12 +266,11 @@ MIT License - Free for commercial and non-commercial use.
 
 For issues, questions, or contributions:
 - GitHub Issues: https://github.com/opensite-ai/opensite-skills/issues
-- Documentation: https://opensite-ai.github.io/opensite-skills
-- Community: https://discord.gg/opensite
+- Repository: https://github.com/opensite-ai/opensite-skills
 
 ## Changelog
 
-### 1.0.0 (2024-11-15)
+### 1.0.0 (2026-03-27)
 - Initial production-ready release
 - Comprehensive guardrails and protocols
 - Multi-platform support

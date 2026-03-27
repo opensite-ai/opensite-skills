@@ -1,10 +1,42 @@
 ---
 name: large-scale-refactor
-description: "Guardrails, protocols, and operating constraints for large-scale, long-running, or parallelized AI coding tasks: migrations, codebase-wide refactors, framework upgrades, and any task touching 50+ files. Prevents scope creep, context drift, and emergent behavior. Use when refactoring across files, migrating frameworks, upgrading dependencies, replacing or renaming patterns throughout a codebase, or any task touching 50 or more files."
+description: >
+  Guardrails, protocols, and operating constraints for large-scale, long-running,
+  or parallelized AI coding tasks — migrations, codebase-wide refactors, framework
+  upgrades, and any task touching 50+ files. Prevents scope creep, context drift,
+  silent compounding errors, and emergent behavior outside the defined task boundary.
+  Use when refactoring across files, migrating frameworks, upgrading dependencies,
+  replacing or renaming patterns throughout a codebase, or any task touching 50+
+  files.
+license: MIT
 metadata:
   author: opensite-ai
   version: 1.0.0
-  tags: refactor, migration, long-running, multi-agent, guardrails, agentic
+  tags:
+    - refactor
+    - migration
+    - long-running
+    - multi-agent
+    - guardrails
+    - agentic
+  platforms:
+    claude-code: { context: auto, invoke: automatic }
+    codex: { invoke: automatic }
+    cursor: { invoke: /large-scale-refactor }
+    copilot: { invoke: /large-scale-refactor }
+    qoder-quest: { scenario: "Code with Spec", environment: remote }
+    factory-droid: { invoke: automatic }
+  activation_patterns:
+    - "refactor * across"
+    - "migrate * to"
+    - "upgrade * from"
+    - "replace all"
+    - "update every"
+    - "rename * throughout"
+    - "convert all"
+    - "remove all instances"
+    - "batch * across the codebase"
+    - "files_touched_estimate >= 50"
 ---
 
 # large-scale-refactor
@@ -141,6 +173,23 @@ are explicitly named in the spec:
 If the task genuinely requires a new shared utility to be non-repetitive, the agent
 will propose it in `OBSERVATIONS.md` and **halt for human approval** before creating it.
 
+### 2.5 Net-New Code Threshold
+
+If completing any single change requires writing more than **50 lines of net-new
+logic** (not counting type annotations, renamed identifiers, or structural
+reformatting), the agent has likely lost the thread.
+
+> **50-line rule**: If you are about to write more than 50 lines of net-new logic
+> to accomplish a refactoring step, stop. Log the situation in `OBSERVATIONS.md`.
+> Halt for human review before proceeding.
+
+This threshold exists because large-scale refactors should primarily *transform*
+existing patterns, not *invent* new ones. Exceeding 50 lines of net-new logic almost
+always indicates scope creep or a task that requires architectural discussion before
+continuing.
+
+---
+
 ### 2.4 Dependency Lockdown
 
 The agent will not add, remove, or upgrade any dependency unless:
@@ -154,6 +203,12 @@ Any dependency change not meeting these criteria requires an explicit human chec
 ## § 3 — EXECUTION PROTOCOL
 
 ### 3.1 Atomic Subtask Commits
+
+> **Pilot Batch Recommendation**: For any new refactor task, process the first
+> batch with only 10–20 files — even if the risk level would normally allow more.
+> This surfaces edge cases in the spec, validates the transformation approach, and
+> lets you refine patterns before scaling to the full codebase. Do not skip the
+> pilot batch.
 
 Each subtask from the spec decomposition must land as its own commit or PR, never
 combined. Commit message format:
@@ -323,7 +378,7 @@ that is not in the allowlist triggers a checkpoint.
 
 Long-running tasks frequently span multiple sessions. Context that must survive:
 
-### Session Handoff File (`.refactor-session.md`)
+### 6.1 Session Handoff File (`.refactor-session.md`)
 
 The agent writes this file at the end of every session and reads it at the start
 of the next:
@@ -358,6 +413,27 @@ Agent: <model/platform>
 This file is committed with each session's changes. It is the handoff protocol
 that ensures a fresh agent context (new session, different model, different
 platform) can resume without drift.
+
+### 6.2 Context Flushing Protocol (Anti-Degradation)
+
+Agent performance degrades measurably as context windows fill with accumulated
+file diffs and intermediate reasoning. To counter this, the agent actively flushes
+context between batches.
+
+**After completing each batch:**
+1. Commit and push all changes.
+2. Write the session handoff file (§ 6.1).
+3. **Discard from active context**: all file diffs, modified file contents, and
+   intermediate reasoning from the completed batch.
+4. **Reload into fresh context**: the approved spec + the latest `.refactor-session.md`
+   + the next batch file list only.
+
+**Flush immediately if any of these signals appear:**
+- Referencing a decision made more than 2 batches ago without first consulting
+  `.refactor-session.md`
+- Uncertainty about the original task without re-reading the spec
+- Making changes that "feel right" based on pattern matching rather than explicit
+  spec compliance
 
 ---
 
