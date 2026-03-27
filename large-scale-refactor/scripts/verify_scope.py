@@ -62,9 +62,9 @@ def _file_matches_pattern(file: str, pattern: str) -> bool:
 
     3. **Exact** — literal path equality, e.g. ``config/settings.py``.
     """
-    # 1. Directory prefix
+    # 1. Directory prefix (trailing slash required — prevents false prefix matches)
     if pattern.endswith("/"):
-        if file.startswith(pattern) or file.startswith(pattern.rstrip("/")):
+        if file.startswith(pattern):
             return True
 
     # 2. Glob (fnmatch handles *, ?, [...] character classes)

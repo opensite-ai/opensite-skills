@@ -74,6 +74,15 @@ def extract_scope_patterns(spec_content: str) -> list[str]:
     spec doesn't produce a misleadingly small allowlist.  If no checked items
     are found at all, *all* bullet items in the block are used as a fallback
     so a brand-new spec with empty checkboxes still produces a useful allowlist.
+
+    .. note:: Fallback mode caveat
+
+       When no checked items exist, the fallback path operates on raw
+       descriptive prose (e.g. "Add TypeScript type annotations, change file
+       extensions from .js to .ts/.tsx").  The path regex may extract spurious
+       patterns from prose fragments like ``.ts/.tsx`` → ``ts/``.  When using
+       unchecked specs, run with ``--dry-run`` first to inspect output before
+       committing the allowlist.
     """
     patterns: list[str] = []
     in_scope = False

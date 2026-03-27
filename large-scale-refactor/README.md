@@ -279,8 +279,7 @@ For issues, questions, or contributions:
 
 ## Roadmap
 
-- Enhanced pattern matching in verification scripts
-- Integration with CI/CD pipelines
+- Integration with CI/CD pipelines (`--github-actions` output flag for verify_scope.py)
 - Additional platform support
 - Performance optimization for very large codebases
 

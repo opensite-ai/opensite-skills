@@ -102,7 +102,7 @@ Invoke the `large-scale-refactor` skill when you encounter any of the following 
 
 ### Escalation Path
 
-1. **Log the issue** in OBSERVATIONS.md or escalations.md
+1. **Log the issue** in OBSERVATIONS.md
 2. **Halt execution** at nearest checkpoint
 3. **Provide context** about the situation
 4. **Offer options** with implications

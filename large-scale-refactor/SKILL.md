@@ -9,34 +9,33 @@ description: >
   replacing or renaming patterns throughout a codebase, or any task touching 50+
   files.
 license: MIT
-metadata:
-  author: opensite-ai
-  version: 1.0.0
-  tags:
-    - refactor
-    - migration
-    - long-running
-    - multi-agent
-    - guardrails
-    - agentic
-  platforms:
-    claude-code: { context: auto, invoke: automatic }
-    codex: { invoke: automatic }
-    cursor: { invoke: /large-scale-refactor }
-    copilot: { invoke: /large-scale-refactor }
-    qoder-quest: { scenario: "Code with Spec", environment: remote }
-    factory-droid: { invoke: automatic }
-  activation_patterns:
-    - "refactor * across"
-    - "migrate * to"
-    - "upgrade * from"
-    - "replace all"
-    - "update every"
-    - "rename * throughout"
-    - "convert all"
-    - "remove all instances"
-    - "batch * across the codebase"
-    - "files_touched_estimate >= 50"
+author: opensite-ai
+version: 1.0.0
+tags:
+  - refactor
+  - migration
+  - long-running
+  - multi-agent
+  - guardrails
+  - agentic
+platforms:
+  claude-code: { context: auto, invoke: automatic }
+  codex: { invoke: automatic }
+  cursor: { invoke: /large-scale-refactor }
+  copilot: { invoke: /large-scale-refactor }
+  qoder-quest: { scenario: "Code with Spec", environment: remote }
+  factory-droid: { invoke: automatic }
+activation_patterns:
+  - "refactor * across"
+  - "migrate * to"
+  - "upgrade * from"
+  - "replace all"
+  - "update every"
+  - "rename * throughout"
+  - "convert all"
+  - "remove all instances"
+  - "batch * across the codebase"
+  - "files_touched_estimate >= 50"
 ---
 
 # large-scale-refactor
@@ -173,6 +172,14 @@ are explicitly named in the spec:
 If the task genuinely requires a new shared utility to be non-repetitive, the agent
 will propose it in `OBSERVATIONS.md` and **halt for human approval** before creating it.
 
+### 2.4 Dependency Lockdown
+
+The agent will not add, remove, or upgrade any dependency unless:
+1. It is explicitly listed in the spec as an allowed dependency change, OR
+2. It is a `@types/*` package required by a TypeScript migration
+
+Any dependency change not meeting these criteria requires an explicit human checkpoint.
+
 ### 2.5 Net-New Code Threshold
 
 If completing any single change requires writing more than **50 lines of net-new
@@ -187,16 +194,6 @@ This threshold exists because large-scale refactors should primarily *transform*
 existing patterns, not *invent* new ones. Exceeding 50 lines of net-new logic almost
 always indicates scope creep or a task that requires architectural discussion before
 continuing.
-
----
-
-### 2.4 Dependency Lockdown
-
-The agent will not add, remove, or upgrade any dependency unless:
-1. It is explicitly listed in the spec as an allowed dependency change, OR
-2. It is a `@types/*` package required by a TypeScript migration
-
-Any dependency change not meeting these criteria requires an explicit human checkpoint.
 
 ---
 
