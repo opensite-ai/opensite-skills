@@ -39,6 +39,21 @@ cd ~/opensite-skills
 
 The setup script detects which platforms are installed and creates symlinks from each platform's skills directory to this repo — no file copying. This includes Mistral Vibe, which will automatically sync the skills from this repo.
 
+### Permission denied running `./setup.sh`?
+
+If you see `bash: ./setup.sh: Permission denied` (or `zsh: permission denied: ./setup.sh`), the script isn't marked executable on your machine. Fix it with:
+
+```bash
+chmod +x setup.sh
+./setup.sh
+```
+
+This flips the executable bit on the file so your shell is allowed to run it directly. You only need to do this once per clone. Alternatively, you can skip `chmod` entirely and just run it through `bash`:
+
+```bash
+bash setup.sh
+```
+
 ---
 
 ## Memory System — Persistent Long-Term Context
