@@ -62,7 +62,7 @@ Use this template when opening a "New Skill Proposal" issue:
 
 **One-sentence description** (what it does + when to use it):
 
-**Platform(s)**: Claude Code / Codex / Cursor / Copilot / Claude Desktop / all
+**Platform(s)**: Claude Code / Codex / Cursor / Copilot / OpenCode / Claude Desktop / all
 
 **Who needs this**: (role or situation — "Rails developers running zero-downtime
 deploys", "teams migrating a large codebase", etc.)
