@@ -121,6 +121,42 @@ else
 fi
 echo ""
 
+# ── OpenCode ──────────────────────────────────────────────────────────────────
+# OpenCode searches multiple global locations for skills. We target its primary
+# global path: ~/.config/opencode/skills/<name>/SKILL.md
+# OpenCode also reads from ~/.claude/skills (already linked above) and
+# ~/.agents/skills (linked below when present), so any skills you install for
+# Claude Code automatically work in OpenCode too.
+OPENCODE_SKILLS="$HOME/.config/opencode/skills"
+if command -v opencode &>/dev/null || [ -d "$HOME/.config/opencode" ]; then
+  echo "── OpenCode ──────────────────────────────────────────────────"
+  mkdir -p "$OPENCODE_SKILLS"
+  for skill in "$SKILLS_DIR"/*/; do
+    link_skill "$skill" "$OPENCODE_SKILLS"
+  done
+  PLATFORMS+=("OpenCode")
+else
+  echo "── OpenCode — SKIPPED (not installed)"
+fi
+echo ""
+
+# ── ~/.agents/skills (shared global) ──────────────────────────────────────────
+# OpenCode (and some other agents) also discover skills from ~/.agents/skills.
+# Link here only if the directory already exists, so we don't create stray dirs
+# on machines that don't use this convention.
+AGENTS_GLOBAL_SKILLS="$HOME/.agents/skills"
+if [ -d "$HOME/.agents" ]; then
+  echo "── ~/.agents/skills (shared) ─────────────────────────────────"
+  mkdir -p "$AGENTS_GLOBAL_SKILLS"
+  for skill in "$SKILLS_DIR"/*/; do
+    link_skill "$skill" "$AGENTS_GLOBAL_SKILLS"
+  done
+  PLATFORMS+=("~/.agents/skills")
+else
+  echo "── ~/.agents/skills — SKIPPED (directory not present)"
+fi
+echo ""
+
 # ── Repo-level (optional) ────────────────────────────────────────────────────
 if [ "${LINK_REPO:-0}" = "1" ]; then
   echo "── Repo-level (.agents/skills) ───────────────────────────────"
@@ -138,7 +174,7 @@ echo "════════════════════════�
 if [ ${#PLATFORMS[@]} -gt 0 ]; then
   echo "  Linked $SKILL_COUNT skills across: ${PLATFORMS[*]}"
 else
-  echo "  No platforms detected. Install Claude Code, Codex, Copilot (gh), Cursor, Factory/Droid, or Mistral Vibe first."
+  echo "  No platforms detected. Install Claude Code, Codex, Copilot (gh), Cursor, Factory/Droid, Mistral Vibe, or OpenCode first."
   echo "  Then re-run this script."
 fi
 echo ""

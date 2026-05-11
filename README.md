@@ -4,7 +4,7 @@
 
 ![Multi Agent Support AI Skills Library](https://octane.cdn.ing/api/v1/images/transform?url=https://cdn.ing/assets/i/r/297562/3b1o40e6650ce6yxbgdcrr83c35e/og.jpg&f=webp)
 
-A growing collection of skills spanning frontend design, Rust and Rails backend engineering, AI/RAG pipeline patterns, database performance, DevOps automation, and more — built to stay in sync across every AI coding agent you run. Because keeping Claude Code, Codex, Copilot, Cursor, Factory/Droid, and cloud platforms all individually up to date sounds like a special kind of hell, this repo ships a full set of scripts that maintain a single source of truth for all of them.
+A growing collection of skills spanning frontend design, Rust and Rails backend engineering, AI/RAG pipeline patterns, database performance, DevOps automation, and more — built to stay in sync across every AI coding agent you run. Because keeping Claude Code, Codex, Copilot, Cursor, Factory/Droid, OpenCode, and cloud platforms all individually up to date sounds like a special kind of hell, this repo ships a full set of scripts that maintain a single source of truth for all of them.
 
 These skills follow the [Agent Skills open standard](https://agentskills.io) and are compatible with:
 
@@ -18,6 +18,7 @@ These skills follow the [Agent Skills open standard](https://agentskills.io) and
 | **Perplexity Computer** | Cloud upload — `perplexity.ai/account/org/skills` | Automatic trigger |
 | **Cursor** | `.cursor/skills/` per-repo | Via `/` commands |
 | **Mistral Vibe** | `~/.vibe/skills/` (global) | Automatic + `/skill-name` |
+| **OpenCode** | `~/.config/opencode/skills/` (global) or `.opencode/skills/` (project) | Automatic + on-demand load |
 
 > **One repo, zero copying.** Set this up once with the platform setup script and all tools read from the same directory via symlinks. Update a skill once — all tools see the change instantly. This includes Mistral Vibe, which will automatically sync the skills from this repo.
 
@@ -25,7 +26,7 @@ These skills follow the [Agent Skills open standard](https://agentskills.io) and
 
 ## Quick Setup
 
-> For local platforms: Claude Code, Codex, Cursor, Factory/Droid, and GitHub Copilot. Dedicated scripts for cloud platforms (Perplexity, Claude Desktop) below.
+> For local platforms: Claude Code, Codex, Cursor, Factory/Droid, GitHub Copilot, Mistral Vibe, and OpenCode. Dedicated scripts for cloud platforms (Perplexity, Claude Desktop) below.
 
 ```bash
 # 1. Clone to a stable location
@@ -633,6 +634,18 @@ done
 
 > The setup script detects Copilot by checking for `~/.copilot` or the `gh` CLI. If neither is present the section is skipped automatically.
 
+### OpenCode (global)
+
+```bash
+mkdir -p ~/.config/opencode/skills
+for skill in ~/opensite-skills/*/; do
+  skill_name=$(basename "$skill")
+  ln -sfn "$skill" ~/.config/opencode/skills/"$skill_name"
+done
+```
+
+> OpenCode also reads skills from `~/.claude/skills/` and `~/.agents/skills/`, so if Claude Code is already set up the skills are picked up automatically. The setup script links to `~/.config/opencode/skills/` explicitly so OpenCode finds them whether or not the other paths exist. To make skills available in a single project, use `.opencode/skills/<name>/SKILL.md` (or `.claude/skills/`, `.agents/skills/`) inside that repo — OpenCode walks up from the working directory to the git root to discover them.
+
 ### Repo-level (check in alongside code)
 
 ```bash
@@ -749,7 +762,7 @@ git push
 
 ## Claude Code–Specific Frontmatter
 
-Some skills use Claude Code extensions (`context: fork`, `disable-model-invocation`, `user-invocable`). These fields are **unknown YAML** to Codex, Perplexity, Cursor, and Copilot — they are silently ignored. Safe to leave in place; they only activate on Claude Code.
+Some skills use Claude Code extensions (`context: fork`, `disable-model-invocation`, `user-invocable`). These fields are **unknown YAML** to Codex, Perplexity, Cursor, Copilot, and OpenCode — they are silently ignored. Safe to leave in place; they only activate on Claude Code.
 
 | Skill | Claude Code behavior | Other platforms |
 | ------- | --------------------- | ----------------- |
@@ -862,7 +875,7 @@ opensite-skills/
 ├── README.md
 ├── scripts/refresh_skill_support.py
 ├── scripts/validate_skills.py
-├── setup.sh               ← Symlink installer (Claude Code, Codex, Copilot, Cursor, Factory/Droid)
+├── setup.sh               ← Symlink installer (Claude Code, Codex, Copilot, Cursor, Factory/Droid, Mistral Vibe, OpenCode)
 ├── sync-perplexity.sh     ← Perplexity Computer cloud sync
 ├── sync-claude.sh         ← Claude Desktop cloud sync
 └── .env                   ← Session cookies (gitignored)
