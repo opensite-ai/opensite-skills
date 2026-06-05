@@ -1,0 +1,37 @@
+interface:
+  display_name: "Epistemic Rigor"
+  short_description: "Truth-first critical analysis over approval."
+  default_prompt: >
+    Use $epistemic-rigor when proposing a hypothesis, evaluating an architectural
+    decision, reviewing code design, or any situation where honest critical analysis
+    is more valuable than validation. Forces the professor-reviewing-a-thesis-proposal
+    posture: errors identified first, strengths acknowledged only after.
+
+policy:
+  allow_implicit_invocation: true
+
+activation_patterns:
+  - "what do you think about my idea"
+  - "does this make sense"
+  - "is this approach correct"
+  - "review my design"
+  - "my hypothesis is"
+  - "I think the reason is"
+  - "would this work"
+  - "validate my thinking"
+  - "am I right that"
+  - "is my understanding correct"
+  - "does this architecture hold up"
+  - "critique this"
+  - "find the flaws in"
+  - "poke holes in"
+
+metadata:
+  name: epistemic-rigor
+  description: >
+    Forces truth-first, anti-sycophantic behavior. Overrides default RLHF
+    approval-seeking to deliver honest critical analysis. Applies the Rigor
+    Protocol (restate → errors → strengths) to any hypothesis or proposal.
+  author: Jordan Hudgens / OpenSite AI
+  version: "1.0.0"
+  category: ai-behavior
