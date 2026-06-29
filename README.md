@@ -718,6 +718,7 @@ git push
 | Skill | Description |
 | ------- | ------------- |
 | `large-scale-refactor` | Guardrails, protocols, and hard-stop constraints for tasks touching 50+ files, spanning multiple sessions, or running across parallel agents. Enforces a spec-gate before any work begins, the Substitution Test on every file touch, per-session file diff budgets, periodic drift detection checkpoints, and a session handoff file that lets any agent resume without context loss. Produces `TASK_SPEC.md`, `OBSERVATIONS.md`, `CHANGE_MANIFEST.md`, and `.refactor-session.md` as structured artifacts. |
+| `dependency-upgrade-orchestrator` | Language- and framework-agnostic six-phase process for upgrading one or more dependencies safely: detect ecosystem and confirm a green baseline, resolve version/peer/transitive conflicts for the whole upgrade set before touching code, read changelogs and migration guides via search for every intermediate version to extract breaking and behavioral changes, install and re-pin the lockfile, apply the required code fixes at every call site, and verify with the project's own build → lint → test gates. Works across Cargo, npm/pnpm/yarn, pip/Poetry/uv, Go modules, Maven/Gradle, and Bundler. Produces an upgrade plan and per-dependency changelog-diff. |
 
 ### AI / Research
 
@@ -866,6 +867,12 @@ opensite-skills/
 │   ├── references/
 │   ├── scripts/
 │   └── templates/
+├── dependency-upgrade-orchestrator/ ← Safe, search-driven dependency upgrades (any ecosystem)
+│   ├── SKILL.md
+│   ├── agents/openai.yaml
+│   ├── references/activation.md
+│   ├── templates/                 ← upgrade-plan, changelog-diff
+│   └── examples/                  ← Rust multi-bump, JS major migration
 ├── opensite-ui-components/        ← @opensite/ui component patterns
 ├── page-speed-library/            ← @page-speed/* package development
 ├── pgvector-optimization/         ← pgvector HNSW/IVFFlat tuning
