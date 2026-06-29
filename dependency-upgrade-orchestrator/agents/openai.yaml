@@ -1,0 +1,7 @@
+interface:
+  display_name: "Dependency Upgrade Orchestrator"
+  short_description: "Safely upgrade one or more dependencies"
+  default_prompt: "Use $dependency-upgrade-orchestrator when bumping, upgrading, or migrating one or more dependencies — to resolve conflicts, read changelogs for breaking changes, apply the required code fixes, and verify with build, lint, and test."
+
+policy:
+  allow_implicit_invocation: true
