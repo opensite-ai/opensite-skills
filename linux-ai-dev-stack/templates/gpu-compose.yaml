@@ -1,0 +1,39 @@
+# Docker Compose — a local LLM inference service with an NVIDIA GPU reservation.
+# Requires the NVIDIA Container Toolkit on the host (see references/ml-frameworks.md).
+# Run:   docker compose -f gpu-compose.yaml up -d
+# Verify GPU:  docker compose -f gpu-compose.yaml exec inference nvidia-smi
+# Image tags/versions are examples as of 2026-07 — verify before use.
+
+services:
+  inference:
+    # Ollama is the simplest default; swap for vllm/vllm-openai or a llama.cpp image.
+    image: ollama/ollama:latest
+    container_name: ai-inference
+    restart: unless-stopped
+    ports:
+      # Bind to loopback by default. Expose on the LAN ONLY on a trusted network,
+      # and always front it with auth/TLS or Tailscale (see local-llm-inference.md).
+      - "127.0.0.1:11434:11434"
+    volumes:
+      - ollama-models:/root/.ollama
+    environment:
+      OLLAMA_HOST: "0.0.0.0:11434"
+      OLLAMA_KV_CACHE_TYPE: "q8_0"
+      OLLAMA_FLASH_ATTENTION: "1"
+      OLLAMA_CONTEXT_LENGTH: "8192"
+    # NVIDIA GPU reservation (Compose Deploy spec).
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all          # or a specific number, e.g. 1
+              capabilities: ["gpu"]
+    healthcheck:
+      test: ["CMD", "sh", "-c", "curl -sf http://localhost:11434/v1/models || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  ollama-models:

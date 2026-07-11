@@ -1,0 +1,6 @@
+interface:
+  display_name: "Linux AI Dev Stack"
+  short_description: "Install the local and cloud AI dev stack"
+  default_prompt: "Use $linux-ai-dev-stack to install and wire the AI toolchain on Linux: local LLM inference (Ollama/llama.cpp/vLLM) with VRAM-based model choice, AI coding agents plus MCP servers, ML frameworks and GPU containers, and cloud/remote GPU workflows."
+policy:
+  allow_implicit_invocation: true

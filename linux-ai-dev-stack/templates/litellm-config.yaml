@@ -1,0 +1,65 @@
+# LiteLLM proxy config — routes local + cloud models behind one endpoint.
+# Run:  litellm --config litellm-config.yaml    (default listen: http://localhost:4000)
+# Docs (verify current schema, as of 2026-07): https://docs.litellm.ai/docs/proxy/configs
+#
+# Secrets: use os.environ/ references so keys never live in this file.
+# Set ANTHROPIC_API_KEY / OPENAI_API_KEY / GEMINI_API_KEY in your environment,
+# ideally via a secrets manager (e.g. `op run -- litellm --config litellm-config.yaml`).
+
+model_list:
+  # --- Anthropic-named alias mapped to a LOCAL model ---
+  # Claude Code speaks the Anthropic API; naming a local model after a real Anthropic
+  # model lets Claude Code use it unchanged. Point Claude Code here with:
+  #   export ANTHROPIC_BASE_URL="http://localhost:4000"
+  #   export ANTHROPIC_AUTH_TOKEN="sk-litellm-key"
+  - model_name: claude-3-5-sonnet-local
+    litellm_params:
+      model: ollama_chat/qwen2.5-coder:14b
+      api_base: http://localhost:11434
+      # Ollama's default context (2048/4096) truncates silently — raise it:
+      num_ctx: 32768
+
+  # --- Local models via their OpenAI-compatible endpoints ---
+  - model_name: local-qwen-coder
+    litellm_params:
+      model: openai/qwen2.5-coder:14b
+      api_base: http://localhost:11434/v1
+      api_key: "sk-no-key-required"
+
+  - model_name: local-vllm
+    litellm_params:
+      model: openai/Qwen/Qwen3-8B
+      api_base: http://localhost:8000/v1
+      api_key: "sk-no-key-required"
+
+  # --- Real cloud models (keys pulled from the environment) ---
+  - model_name: sonnet
+    litellm_params:
+      model: anthropic/claude-sonnet-4-5
+      api_key: os.environ/ANTHROPIC_API_KEY
+
+  - model_name: gpt
+    litellm_params:
+      model: openai/gpt-5.1
+      api_key: os.environ/OPENAI_API_KEY
+
+  - model_name: gemini
+    litellm_params:
+      model: gemini/gemini-3-pro
+      api_key: os.environ/GEMINI_API_KEY
+
+# Router behavior: fall back from local to a cloud model on error.
+router_settings:
+  routing_strategy: simple-shuffle
+  num_retries: 2
+  fallbacks:
+    - claude-3-5-sonnet-local: ["sonnet"]
+    - local-qwen-coder: ["sonnet"]
+
+# Proxy-level settings: require a virtual key and cap spend per key.
+litellm_settings:
+  drop_params: true
+  set_verbose: false
+
+general_settings:
+  master_key: os.environ/LITELLM_MASTER_KEY   # e.g. sk-... (set in the environment)
