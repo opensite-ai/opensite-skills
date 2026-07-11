@@ -15,6 +15,9 @@ rails-api-patterns*
 sentry-monitoring*
 gpu-workers-python*
 
+# Research scratch — local only, not shipped
+.research-linux-ai/
+
 # Memory store — local only, never commit
 **/__pycache__/
 memory/store/episodic/
