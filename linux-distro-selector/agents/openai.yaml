@@ -1,0 +1,6 @@
+interface:
+  display_name: "Linux Distro Selector"
+  short_description: "Pick a Linux distro and check hardware fit"
+  default_prompt: "Use $linux-distro-selector when choosing a Linux distribution or checking whether a GPU, Wi-Fi chipset, or laptop will work, and to match a distro to a use case (stability, AI/GPU work, reproducibility, laptop, or server)."
+policy:
+  allow_implicit_invocation: true

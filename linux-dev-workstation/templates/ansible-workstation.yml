@@ -1,0 +1,85 @@
+---
+# ansible-workstation.yml — provision a senior Linux dev workstation.
+# Run locally against the machine you are on:
+#   ansible-playbook -i "localhost," -c local ansible-workstation.yml --ask-become-pass
+# Roles are collapsed into tagged task blocks so this is a single self-contained
+# file. Versions and package names "as of 2026-07 — verify" per distro.
+- name: Configure senior Linux dev workstation
+  hosts: all
+  become: true
+  vars:
+    target_user: youruser
+    base_packages:
+      - git
+      - curl
+      - build-essential   # note: 'base-devel' on Arch, '@development-tools' on Fedora
+      - tmux
+    modern_cli_packages:
+      - ripgrep
+      - fd-find
+      - bat
+      - fzf
+      - zoxide
+      - eza
+      - btop
+
+  tasks:
+    - name: Base — install core build + git tooling
+      ansible.builtin.package:
+        name: "{{ base_packages }}"
+        state: present
+      tags: [base]
+
+    - name: Shell — install zsh and the modern CLI set
+      ansible.builtin.package:
+        name: "{{ ['zsh'] + modern_cli_packages }}"
+        state: present
+      tags: [shell]
+
+    - name: Shell — install starship prompt
+      ansible.builtin.shell: |
+        set -o pipefail
+        curl -sS https://starship.rs/install.sh | sh -s -- --yes
+      args:
+        executable: /bin/bash
+        creates: /usr/local/bin/starship
+      tags: [shell]
+
+    - name: Dev — install mise (meta version manager) for the user
+      become: true
+      become_user: "{{ target_user }}"
+      ansible.builtin.shell: |
+        set -o pipefail
+        curl https://mise.run | sh
+      args:
+        executable: /bin/bash
+        creates: "/home/{{ target_user }}/.local/bin/mise"
+      tags: [dev]
+
+    - name: Dev — install rootless Podman (or use the docker role)
+      ansible.builtin.package:
+        name: podman
+        state: present
+      tags: [dev, containers]
+
+    - name: Security — enable a default-deny firewall (Debian/Ubuntu)
+      community.general.ufw:
+        rule: allow
+        name: OpenSSH
+      when: ansible_facts['os_family'] == "Debian"
+      tags: [security]
+
+    - name: Security — turn the firewall on (SSH already allowed above)
+      community.general.ufw:
+        state: enabled
+        policy: deny
+        direction: incoming
+      when: ansible_facts['os_family'] == "Debian"
+      tags: [security]
+
+    - name: Security — enable unattended security upgrades (Debian/Ubuntu)
+      ansible.builtin.package:
+        name: unattended-upgrades
+        state: present
+      when: ansible_facts['os_family'] == "Debian"
+      tags: [security]

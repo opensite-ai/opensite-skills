@@ -1,0 +1,6 @@
+interface:
+  display_name: "Linux Install Planner"
+  short_description: "Step-by-step Linux install and boot setup"
+  default_prompt: "Use $linux-install-planner to produce a safe, ordered runbook for installing Linux on a physical machine — bootable media, UEFI/Secure Boot, BitLocker/Intel RST handling, partitioning and LUKS encryption, the installer, and first-boot setup — for a human at the computer."
+policy:
+  allow_implicit_invocation: true

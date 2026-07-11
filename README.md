@@ -768,6 +768,17 @@ git push
 | `git-workflow` | Branch naming, Conventional Commits, PR templates, cross-repo change coordination, GitHub Actions CI patterns for Rust and Rails, hotfix process, and database migration safety checklist (manual-invoke only) |
 | `automation-builder` | Browser and system automation: Playwright + real browser binary for Cloudflare-protected SPAs, session cookie injection, SPA readiness patterns, React `filechooser` upload flow, error recovery in loops, shell script safety headers, and media tool selection (ffmpeg, ImageMagick, Sharp) |
 
+### Linux / Dev Environment
+
+> **A four-skill suite for building senior-level, AI-focused Linux development environments.** Two advisory *planner* skills that emit step-by-step instructions for a human at the machine, and two *configurator* skills that run commands on the box. Chain them: select → install → configure → AI stack. Multi-vendor GPU parity (NVIDIA / AMD / Intel / Apple Silicon) and both imperative and declarative (chezmoi / Ansible / Nix) reproducibility paths throughout.
+
+| Skill | Role | Invoke When |
+|-------|------|-------------|
+| `linux-distro-selector` | Advisory — pick a distro + verify hardware/GPU fit | "which Linux distro should I use", comparing Ubuntu/Fedora/Arch/NixOS/atomic distros, or checking whether a GPU/Wi-Fi/laptop will work |
+| `linux-install-planner` | Planner — Windows→Linux install runbook | Replacing Windows or dual-booting: bootable media, UEFI/Secure Boot, BitLocker/Intel RST, partitioning + LUKS, installer walkthrough, first boot |
+| `linux-dev-workstation` | Configurator — base dev environment on the machine | GPU drivers, shell/terminal/editors (Neovim/tmux/VS Code/Zed), Rust/Python/Ruby/JS-TS toolchains via mise/uv, Docker/Podman, dotfiles/reproducibility, security hardening |
+| `linux-ai-dev-stack` | Configurator — AI toolchain on the machine | Local LLM inference (Ollama/llama.cpp/vLLM), AI coding agents + MCP, ML frameworks + GPU containers, and cloud/remote GPU workflows |
+
 ### Quality / Security
 
 | Skill | Description |
