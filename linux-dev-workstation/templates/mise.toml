@@ -1,0 +1,41 @@
+# mise.toml — per-project toolchain pins for a polyglot dev box.
+# Drop this at a repo root; `mise install` provisions everything, and mise
+# auto-activates the versions on `cd`. Versions "as of 2026-07 — verify" and bump
+# deliberately (see references/language-toolchains.md).
+#
+# Docs: https://mise.jdx.dev  ·  usage: `mise install`, `mise ls`, `mise upgrade`
+
+[tools]
+# Rust: mise can manage the toolchain, or use rust-toolchain.toml + rustup.
+rust = "1.89.0"
+# Python: many teams let `uv` own Python instead; if so, remove this line and
+# pin with `uv python pin 3.13`.
+python = "3.13"
+ruby = "3.4"
+node = "lts"
+
+# Extra dev CLIs mise can install directly (optional).
+[tools.pnpm]
+version = "9"
+
+[env]
+# Project-scoped environment variables (mise replaces direnv for this).
+# Example: keep a local venv/tooling dir out of the way.
+_.path = ["./bin"]
+PROJECT_ENV = "development"
+
+[tasks.setup]
+description = "Install pinned toolchains and project dependencies"
+run = [
+  "mise install",
+  "uv sync",
+  "bundle install",
+  "pnpm install",
+]
+
+[tasks.update]
+description = "Preview then upgrade toolchains (review the diff before committing)"
+run = [
+  "mise outdated",
+  "mise upgrade",
+]

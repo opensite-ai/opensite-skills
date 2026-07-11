@@ -1,0 +1,6 @@
+interface:
+  display_name: "Linux Dev Workstation"
+  short_description: "Configure a senior Linux dev workstation"
+  default_prompt: "Use $linux-dev-workstation to configure a Linux dev machine: GPU drivers (NVIDIA/AMD/Intel/Apple), shell and terminal, editors, Rust/Python/Ruby/JS-TS toolchains via mise/uv, Docker/Podman, reproducible dotfiles (chezmoi/Ansible/Nix), and security hardening."
+policy:
+  allow_implicit_invocation: true
