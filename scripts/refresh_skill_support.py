@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import json
 import re
+import subprocess
 import textwrap
 from pathlib import Path
 
@@ -12,16 +13,34 @@ import yaml
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
-PRIVATE_SKILLS = {
-    "deploy-fly-io",
-    "gpu-workers-python",
-    "octane-embedding-pipeline",
-    "octane-llm-engine",
-    "octane-rust-axum",
-    "octane-soc2-hipaa",
-    "rails-api-patterns",
-    "sentry-monitoring",
-}
+
+def get_private_skills() -> set[str]:
+    """Return skill directory names that git ignores (i.e. private skills).
+
+    ``.gitignore`` is the authoritative source of truth for private vs public
+    skills, so this is derived from it at runtime instead of a hardcoded list.
+    Using ``git check-ignore`` honors every ignore pattern exactly as git does,
+    so the set can never drift from the ignore rules.
+    """
+    private: set[str] = set()
+    skill_dirs = [p for p in REPO_ROOT.iterdir() if (p / "SKILL.md").exists()]
+    try:
+        for skill_dir in skill_dirs:
+            result = subprocess.run(
+                ["git", "check-ignore", "-q", str(skill_dir / "SKILL.md")],
+                cwd=str(REPO_ROOT),
+                capture_output=True,
+            )
+            if result.returncode == 0:
+                private.add(skill_dir.name)
+    except OSError:
+        # git is unavailable; fall back to an empty set (treat everything public).
+        pass
+    return private
+
+
+# Derived from .gitignore at import time so it can never drift from the ignore rules.
+PRIVATE_SKILLS = get_private_skills()
 
 SKILL_META = {
     "agent-file-engine": {
@@ -1472,9 +1491,19 @@ def refresh_skill(skill_dir: Path) -> None:
 
 def main() -> int:
     skill_dirs = sorted(path for path in REPO_ROOT.iterdir() if (path / "SKILL.md").exists())
-    for skill_dir in skill_dirs:
+    managed = [p for p in skill_dirs if p.name in SKILL_META]
+    skipped = sorted(p.name for p in skill_dirs if p.name not in SKILL_META)
+
+    for skill_dir in managed:
         refresh_skill(skill_dir)
-    print(f"Updated support files for {len(skill_dirs)} skills.")
+
+    print(f"Updated support files for {len(managed)} skills.")
+    if skipped:
+        print(
+            f"Skipped {len(skipped)} skill(s) not present in SKILL_META "
+            f"(add them to SKILL_META to manage their metadata/support files): "
+            f"{', '.join(skipped)}"
+        )
     return 0
 
 

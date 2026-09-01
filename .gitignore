@@ -1,7 +1,6 @@
 .env
 *.zip
 .DS_Store
-AGENTS.md
 .playwright/
 .playwright-mcp/
 .skill-zips-tmp/
