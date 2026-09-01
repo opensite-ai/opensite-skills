@@ -15,6 +15,7 @@ These skills follow the [Agent Skills open standard](https://agentskills.io) and
 | **Codex** | `~/.codex/skills/` (global) or `.agents/skills/` (repo) | Automatic + `$skill-name` |
 | **Factory/Droid** | `~/.factory/skills/` (global) | Via `/` commands |
 | **GitHub Copilot** | `~/.copilot/skills/` (global) | Via `/` commands |
+| **Goose** | `~/.agents/skills/` (global) | Automatic (description-triggered) |
 | **Perplexity Computer** | Cloud upload — `perplexity.ai/account/org/skills` | Automatic trigger |
 | **Cursor** | `.cursor/skills/` per-repo | Via `/` commands |
 | **Mistral Vibe** | `~/.vibe/skills/` (global) | Automatic + `/skill-name` |
@@ -22,11 +23,18 @@ These skills follow the [Agent Skills open standard](https://agentskills.io) and
 
 > **One repo, zero copying.** Set this up once with the platform setup script and all tools read from the same directory via symlinks. Update a skill once — all tools see the change instantly. This includes Mistral Vibe, which will automatically sync the skills from this repo.
 
+> **Shared global default — `~/.agents/skills/`.** This is the emerging cross-agent "master"
+> skills directory. Goose, OpenCode, and other agents discover skills there automatically,
+> and `setup.sh` populates it with symlinks to this repo whenever `~/.agents/` exists — so
+> it acts as the single location most local tools read from. (The project-level equivalent
+> is `.agents/skills/` inside a repo; the per-tool directories like `~/.claude/skills/` and
+> `~/.codex/skills/` remain tool-specific overrides.)
+
 ---
 
 ## Quick Setup
 
-> For local platforms: Claude Code, Codex, Cursor, Factory/Droid, GitHub Copilot, Mistral Vibe, and OpenCode. Dedicated scripts for cloud platforms (Perplexity, Claude Desktop) below.
+> For local platforms: Claude Code, Codex, Cursor, Factory/Droid, GitHub Copilot, Goose, Mistral Vibe, and OpenCode. Dedicated scripts for cloud platforms (Perplexity, Claude Desktop) below.
 
 ```bash
 # 1. Clone to a stable location
