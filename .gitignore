@@ -3,6 +3,7 @@
 .DS_Store
 AGENTS.md
 .playwright/
+.playwright-mcp/
 .skill-zips-tmp/
 
 # Ignore platform-specific skills
@@ -14,6 +15,21 @@ octane-soc2-hipaa*
 rails-api-patterns*
 sentry-monitoring*
 gpu-workers-python*
+encapsa-deal-desk*
+forge-context-engine*
+forge-agent-plan-authoring*
+flyio-hmac-multi-app-ops*
+gpu-cpu-workload-placement*
+llm-router-fallback-deadlines*
+llm-eval-harness-design*
+open-model-vetting-and-roster*
+phi-redaction-engineering*
+runpod-serverless-vllm-ops*
+rust-axum-ai-service*
+rust-tiered-web-scraping*
+
+# Private-skill index — local only, never commit (see PRIVATE_SKILLS.md)
+PRIVATE_SKILLS.md
 
 # Research scratch — local only, not shipped
 .research-linux-ai/

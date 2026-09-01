@@ -696,6 +696,12 @@ git push
 
 ## Skills Inventory
 
+> **Private skills (this machine only):** If a file named `PRIVATE_SKILLS.md` exists at
+> the repo root, read it — it is the canonical index of gitignored/proprietary skills
+> that are available locally but never committed. If it is absent (public clone), only
+> the public skills documented below apply. Never copy private skill names or details
+> into committed docs.
+
 ### Memory System
 
 > **Four skills that work as a unit.** Install all four. Use `memory-recall` to start every session and `memory-write` to end it. Run `memory-consolidate` weekly.
@@ -713,6 +719,60 @@ git push
 | ------- | ------------- |
 | `context-management` | Context virtualization for extending effective context windows. SQLite FTS5 indexing of large tool outputs, BM25 keyword search, deterministic priority-based output compression, session checkpointing across compaction boundaries, and a stats dashboard for measuring token savings. Essential for Codex CLI and other agents without hook-based output interception. |
 
+### Growth & CRO
+
+> **Ten skills covering the full conversion lifecycle** — measurement, valid testing, and
+> execution from first visit through signup and activation. Chain them for a complete
+> growth program: `analytics` for measurement, `experiment-design` for valid tests,
+> `ab-testing` for execution, and `funnel-flow-architecture` to orchestrate the rest.
+
+| Skill | Description |
+| ------- | ------------- |
+| `ab-testing` | Plans, designs, and implements statistically valid A/B tests and builds a growth experimentation program — hypothesis writing, ICE-scored backlogs, sample size, significance, and experiment velocity. Includes sample-size and test-template references. |
+| `analytics` | Sets up, improves, or audits analytics measurement (GA4, GTM, events, UTMs, tracking plans) so decisions rest on actionable data rather than vanity metrics. Includes event-library, GA4, and GTM references. |
+| `cro` | Optimizes marketing pages and lead/contact forms (homepage, landing, pricing, feature) across value-prop clarity, trust, and friction, returning prioritized conversion recommendations. For signup flows see `signup`; post-signup see `onboarding`. |
+| `cro-optimization` | Hypothesis-driven CRO as a structured discipline — audit → hypothesize → test → decide. Produces hypotheses, test design, statistical analysis, and rollout decisions, stack- and tool-agnostic. |
+| `experiment-design` | Designs experiments (A/B, multivariate, holdouts) so results actually answer the question asked — hypothesis writing, sample size/MDE, duration, guardrails, no-peeking discipline, and pre-committed decision rules. Seven references on failure modes, readiness, and interpretation. |
+| `form-strategy` | Designs and audits any form (contact, signup, checkout, multi-step, embedded) for conversion, validation, spam resistance (captcha/honeypot), tooling choice, and downstream integration. |
+| `funnel-flow-architecture` | Architectures cross-tool conversion flows matched to audience and stage (landing page → lead magnet → nurture → offer), distinguishing silo-, kitchen-sink-, and matched-funnel patterns. Nine references on entry points, data flow, measurement, and iteration. |
+| `multi-step-form-design` | Designs multi-step forms with progress indicators, conditional logic, and save-and-resume that respect cognitive load and preserve completion intent. Nine references on step architecture, validation, and drop-off remediation. |
+| `onboarding` | Optimizes post-signup onboarding and activation — time-to-value, Minimum Path to Value, activation models, and experiments to reach the "aha moment". For signup/registration see `signup`. |
+| `signup` | Optimizes signup, registration, account creation, and trial activation — field reduction, trust elements, and trial/commitment experiments to raise completion. For post-signup onboarding see `onboarding`. |
+
+### Design, UI & UX
+
+| Skill | Description |
+| ------- | ------------- |
+| `accessibility-audit` | Runs a stack-agnostic WCAG 2.1 AA audit across all four principles (perceivable, operable, understandable, robust) via automated, keyboard, screen-reader, visual, and cognitive passes; delivers a prioritized findings report plus a remediation roadmap. |
+| `frontend-design` | Builds distinctive, production-grade frontend interfaces (components, pages, dashboards, posters) as working HTML/CSS/JS or React, committing to a bold aesthetic and meticulous detail to avoid generic "AI slop". |
+| `mobile-design` | Mobile-first design thinking for iOS/Android/React Native/Flutter — touch interaction, performance, and platform conventions — teaching principles rather than fixed values. Includes a `mobile_audit.py` script and 12 reference docs. |
+| `theme-factory` | Applies one of 10 curated color/font themes to any artifact (slides, docs, reports, HTML landing pages), or generates a custom theme on-the-fly. Includes a theme showcase and 10 theme definitions. |
+| `ui-design-system` | Toolkit for creating and maintaining design systems — design-token generation, component documentation, responsive calculations, and developer handoff. Driven by `design_token_generator.py`. |
+| `ui-ux-pro-max` | Searchable UI/UX design-intelligence database (50+ styles, 97 palettes, 57 font pairings, 99 UX guidelines, 25 chart types across 9 stacks) that generates a complete design system with reasoning via CLI search. |
+| `ux-researcher-designer` | UX research and design toolkit — data-driven persona generation, journey mapping, usability testing frameworks, and research synthesis. Personas via `persona_generator.py`. |
+
+### Strategy & Leadership
+
+| Skill | Description |
+| ------- | ------------- |
+| `ceo-advisor` | Executive leadership guidance — strategic planning, org development, board governance, investor relations, and financial scenario modeling, backed by `strategy_analyzer.py` and `financial_scenario_analyzer.py`. |
+| `product-strategist` | Head-of-Product toolkit — OKR cascade generation, market/competitive analysis, vision setting, and team scaling, via `okr_cascade_generator.py`. |
+
+### Architecture & Data Science
+
+| Skill | Description |
+| ------- | ------------- |
+| `senior-architect` | Software architecture across React/Next.js/Node/Express/React Native/Swift/Kotlin/Flutter/Postgres/GraphQL/Go/Python — architecture diagrams, system design patterns, tech-stack decisions, and dependency analysis. |
+| `senior-data-scientist` | Production-grade data science — statistical modeling, experiment design, feature engineering, model evaluation, and causal inference across Python/R/SQL, including stakeholder communication. |
+
+### Productivity & Tooling
+
+| Skill | Description |
+| ------- | ------------- |
+| `planning-with-files` | Manus-style workflow using persistent markdown files as working memory on disk — a 3-file pattern (`task_plan.md`, `notes.md`, `[deliverable].md`) for planning, progress tracking, error logging, and knowledge storage. |
+| `imagegen` | Generates or edits images via the OpenAI Image API through a bundled CLI — generation, edit/inpaint/mask, background removal, transparent backgrounds, product shots, and batch variants. |
+| `hf-cli` | Hugging Face Hub CLI — download, upload, and manage repositories, models, datasets, and Spaces (replaces the deprecated `huggingface-cli`). |
+
 ### Refactoring / Migrations
 
 | Skill | Description |
@@ -726,6 +786,8 @@ git push
 | ------- | ------------- |
 | `ai-research-workflow` | Multi-step AI research orchestration: `WorkflowBuilder`/`WorkflowStep` system, dual-model routing (Opus for deep research + web search, Sonnet for structured generation), parallel step execution, shared `MemoryStore` between steps, and `ai_tasks` persistence pattern |
 | `ai-retrieval-patterns` | Retrieval architecture decision framework — when to use vector RAG, PageIndex (vectorless PDF tree-search), or precision embedding models. Covers Milvus collection design, hybrid two-stage pipelines, the `EmbeddingProvider` abstraction (BGE-M3, Qwen3), and the routing layer that ties strategies together |
+| `deep-research-agent-architecture` | Design contract for a cited-research agent subsystem — planner/executor separation, source adapters, a two-stage citation gate that hard-fails unverifiable claims, context-budget management, and per-request cost caps, so every claim traces to a fetched source. |
+| `enterprise-nl2sql-architecture` | Architecture guidance for database-agnostic NL2SQL over client-owned Postgres/MSSQL/MySQL/Oracle/Snowflake/BigQuery at hundreds-of-databases scale — retrieval funnel, SQLGlot validation ladder, read-only sandbox, confidence gating, and refusal policy. |
 
 ### UI / Frontend
 
@@ -784,6 +846,7 @@ git push
 | Skill | Description |
 | ------- | ------------- |
 | `code-review-security` | Security-focused PR review: PHI/PII data leakage detection, authentication and authorization coverage, SQL injection scanning, secrets/credential exposure, SSRF risk in external HTTP calls, unsafe Rust code auditing, LLM output trust boundaries, and rate limiting on expensive endpoints |
+| `epistemic-rigor` | Forces truth-first, anti-sycophantic behavior — use when proposing a hypothesis, reviewing an architectural decision, or evaluating code design where honest critical analysis matters more than validation. |
 
 ---
 
