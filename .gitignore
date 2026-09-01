@@ -26,6 +26,7 @@ phi-redaction-engineering*
 runpod-serverless-vllm-ops*
 rust-axum-ai-service*
 rust-tiered-web-scraping*
+production-data-lookup*
 
 # Private-skill index — local only, never commit (see PRIVATE_SKILLS.md)
 PRIVATE_SKILLS.md
