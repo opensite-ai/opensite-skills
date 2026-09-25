@@ -15,6 +15,11 @@ rails-api-patterns*
 sentry-monitoring*
 gpu-workers-python*
 encapsa-deal-desk*
+encapsa-pr-campaign-director*
+encapsa-pr-release-writing*
+encapsa-pr-distribution-scheduling*
+encapsa-pr-media-relations*
+encapsa-pr-measurement-response*
 forge-context-engine*
 forge-agent-plan-authoring*
 flyio-hmac-multi-app-ops*
