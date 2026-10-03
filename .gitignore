@@ -37,6 +37,9 @@ runpod-serverless-vllm-ops*
 rust-axum-ai-service*
 rust-tiered-web-scraping*
 production-data-lookup*
+primerbot-antler-us-application*
+primerbot-techstars-application*
+primerbot-yc-application*
 
 # Private-skill index — local only, never commit (see PRIVATE_SKILLS.md)
 PRIVATE_SKILLS.md
