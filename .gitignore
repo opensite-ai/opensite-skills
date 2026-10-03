@@ -16,11 +16,15 @@ sentry-monitoring*
 gpu-workers-python*
 encapsa-ai-dashboard*
 encapsa-deal-desk*
+encapsa-growth-evidence*
 encapsa-pr-campaign-director*
 encapsa-pr-release-writing*
 encapsa-pr-distribution-scheduling*
 encapsa-pr-media-relations*
 encapsa-pr-measurement-response*
+encapsa-schema-graph-engine*
+encapsa-site-code-migration*
+encapsa-technical-aeo-seo*
 forge-context-engine*
 forge-agent-plan-authoring*
 flyio-hmac-multi-app-ops*
