@@ -40,6 +40,16 @@ production-data-lookup*
 primerbot-antler-us-application*
 primerbot-techstars-application*
 primerbot-yc-application*
+temporal-delivery-planning*
+temporal-design-patterns*
+temporal-docs-verification*
+temporal-experiments-optimization*
+temporal-flyio-operations*
+temporal-human-browser-safety*
+temporal-platform-integration*
+temporal-versioning-replay*
+temporal-visual-workflow-engine*
+temporal-workflow-engineering*
 
 # Private-skill index — local only, never commit (see PRIVATE_SKILLS.md)
 PRIVATE_SKILLS.md
